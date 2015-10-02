@@ -7,13 +7,16 @@
 # Author: Robin Elahi
 # Date: 150701
 #################################################
+# CHANGE LOG
+# Updated survey results file
 
 # load packages
 library(plyr)
 library(dplyr)
 
 # load data
-dat <- read.csv("./data/bsSurveyResults_140527.csv", header=TRUE, na.strings="NA")
+dat <- read.csv("./data/bsSurveyResults_140527_JO_Oct1.csv", header=TRUE, 
+                na.strings="NA")
 names(dat)
 
 # create new ecosystem column (with easier names)

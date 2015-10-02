@@ -7,6 +7,12 @@
 # Author: Robin Elahi
 # Date: 150701
 #################################################
+# CHANGE LOG
+# 151001
+# J OLeary updated papers list file:
+# PapersList2_NL_150526_JO_Oct1.csv
+
+
 
 ##########################################################################
 # Decision tree for expert suggested papers
@@ -23,9 +29,8 @@
 # (Did not remove restoration)
 ##########################################################################
 
-dat <- read.csv("./data/PapersList2_NL_150526.csv", header=TRUE, na.strings="NA")
-# this new file includes one change by Kerry Nickols
-# Dayton 1999 monographs - from 'other' to "enso" - disturbance type
+dat <- read.csv("./data/PapersList2_NL_150526_JO_Oct1.csv", header=TRUE, na.strings="NA")
+
 dim(dat)
 names(dat)
 

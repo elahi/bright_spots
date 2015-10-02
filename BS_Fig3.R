@@ -8,6 +8,12 @@
 # Author: Robin Elahi
 # Date: 150706
 #################################################
+# CHANGE LOG
+# 151002
+# Column H (Disturbance_StrongReslience) was updated by J O'Leary
+# One set of bars only (climate disturbance and habitat-forming species only)
+# Remove white bars (all respondents)
+
 rm(list=ls(all=TRUE)) # removes all previous material from R's memory
 
 # load packages
@@ -29,24 +35,22 @@ source("./R/multiplotF.R")
 ###  In your research, have you encountered instances of notable RESILIENCE, 
 # either through strong resistance to or fast recovery from climatic disturbances?
 
-
-# Filtering steps
-# 97 respondents to start
-# Remove non-climate disturbances; 57 remaining
-
 # load source data
 source("./R/process_expert_survey.R")
 names(dat)
 
+# Filtering steps
+# 97 respondents to start
+
 # now filter to relevant climate criteria
 unique(dat$Disturbance_StrongReslience)
 
-datSub <- dat %>% filter(Disturbance_StrongReslience == "Storms" |
-                          Disturbance_StrongReslience == "Temperature" |
-                          Disturbance_StrongReslience == "ENSO (temperature/storms)" | 
-                          Disturbance_StrongReslience == "Multiple" |
-                          Disturbance_StrongReslience == "Bleaching" |
-                          Disturbance_StrongReslience == "Sea level rise/ Hydrodynamic change")
+# Exclude: "exclude - no disturbance found" and "non-climatic"
+  
+datSub <- dat %>% filter(Disturbance_StrongReslience != "exclude - no disturbance found" &
+                          Disturbance_StrongReslience != "non-climatic" &
+                          Disturbance_StrongReslience != "non climatic")
+
 datSub <- droplevels(datSub)
 unique(datSub$Disturbance_StrongReslience)
 
@@ -110,22 +114,22 @@ ULClabel <- theme(plot.title = element_text(hjust = -0.15,
 subDFn <- examplesDF[examplesDF$data == "subset", ]$N
 fullDFn <- examplesDF[examplesDF$data == "full", ]$N
 
-panelA <- ggplot(examplesDF, aes(x = Ecosystem, y = Proportion, fill = rev(data))) + 
+panelA <- ggplot(examplesDF[examplesDF$data == "subset", ], 
+                 aes(x = Ecosystem, y = Proportion, fill = rev(data))) + 
   theme_classic(base_size = 12) + xlab("") + ylab("Proportion") + 
   labs(title = "A") + ULClabel + 
   geom_bar(color = "black", stat = "identity", 
            position = position_dodge(0.8), width = 0.8) +
   coord_flip() + 	
-  scale_fill_manual(values = c("darkgray", "white")) + 
+  scale_fill_manual(values = c("darkgray")) + 
   guides(fill = guide_legend(reverse = TRUE)) +	
-  geom_text(aes(x = 0.8:5.8, y = 0.05), data = examplesDF[examplesDF$data == "subset", ], 
-            label = rev(subDFn), size = 2.8) + 
-  geom_text(aes(x = 1.25:6.25, y = 0.05), data = examplesDF[examplesDF$data == "full", ], 
-            label = rev(fullDFn), size = 2.8) +	
+  geom_text(aes(x = 1:6, y = 0.05), data = examplesDF[examplesDF$data == "subset", ], 
+            label = rev(subDFn), size = 3) + 
   labs(title = "A") + ULClabel + 
   geom_text(label = "Expert examples", x = 1.25, y = 0.8, size = 3) 	+
   theme(legend.position = "none") 
 
+panelA
 multiplot(panelA, panelB, cols = 2)
 
 ################################
