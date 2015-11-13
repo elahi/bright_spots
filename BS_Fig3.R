@@ -108,26 +108,27 @@ subDF$data <- "subset"
 examplesDF <- rbind(fullDF, subDF)
 
 ### Panel A; use ggplot2 
-ULClabel <- theme(plot.title = element_text(hjust = -0.15, 
+ULClabel <- theme(plot.title = element_text(hjust = -0.2, 
                                             vjust = 0, size = rel(1.5)))
+
+subDF <- examplesDF[examplesDF$data == "subset", ]
+fullDF <- examplesDF[examplesDF$data == "full", ]
 
 subDFn <- examplesDF[examplesDF$data == "subset", ]$N
 fullDFn <- examplesDF[examplesDF$data == "full", ]$N
 
-panelA <- ggplot(examplesDF[examplesDF$data == "subset", ], 
-                 aes(x = Ecosystem, y = Proportion, fill = rev(data))) + 
+panelA <- ggplot(subDF,aes(x = Ecosystem, y = Proportion)) + 
   theme_classic(base_size = 12) + xlab("") + ylab("Proportion") + 
-  labs(title = "A") + ULClabel + 
-  geom_bar(color = "black", stat = "identity", 
-           position = position_dodge(0.8), width = 0.8) +
+  geom_bar(fill = "darkgray", color = "black", 
+           stat = "identity", width = 0.8) +
+  scale_y_continuous(limits = c(0, 1)) + 
   coord_flip() + 	
-  scale_fill_manual(values = c("darkgray")) + 
   guides(fill = guide_legend(reverse = TRUE)) +	
-  geom_text(aes(x = 1:6, y = 0.05), data = examplesDF[examplesDF$data == "subset", ], 
+  geom_text(aes(x = 1:6, y = 0.05), data = subDF, 
             label = rev(subDFn), size = 3) + 
   labs(title = "A") + ULClabel + 
-  geom_text(label = "Expert examples", x = 1.25, y = 0.8, size = 3) 	+
-  theme(legend.position = "none") 
+  geom_text(label = "Expert\nexamples", x = 1, y = 0.9, size = 3)	+
+  theme(legend.position = "none")
 
 panelA
 multiplot(panelA, panelB, cols = 2)
@@ -202,27 +203,26 @@ litData2
 
 ###############################
 # MULTIPANEL PLOT
+subsetPapers <- litData2[litData2$Dataset == "subset", ]
+fullPapers <- litData2[litData2$Dataset == "full", ]
 
 subsetN <- litData2[litData2$Dataset == "subset", ]$N
 fullN <- litData2[litData2$Dataset == "full", ]$N
 
-ULClabel <- theme(plot.title = element_text(hjust = -0.1, vjust = 0, size = rel(1.5)))
-panelB <- ggplot(litData2, aes(x = Ecosystem, y = Proportion, fill = rev(Dataset))) + 
-	theme_classic(base_size = 12) + xlab("") + ylab("Proportion") + 
-	labs(title = "B") + ULClabel + 
-	geom_bar(color = "black", stat = "identity", 
-		position = position_dodge(0.8), width = 0.8) +
-	coord_flip() + 	
-	scale_fill_manual(values = c("darkgray", "white")) + 
-	guides(fill = guide_legend(reverse = TRUE)) +	
-	geom_text(aes(x = 0.8:5.8, y = 0.05), data = litData2[litData2$Dataset == "subset", ], 
-		label = rev(subsetN), size = 2.8) + 
-	geom_text(aes(x = 1.25:6.25, y = 0.05), data = litData2[litData2$Dataset == "full", ], 
-		label = rev(fullN), size = 2.8) +	
-	labs(title = "B") + ULClabel + 
-	geom_text(label = "Literature\nexamples", x = 2, y = 0.8, size = 3) 	+
-	theme(legend.position = "none") +
-	theme(axis.text.y = element_blank())
+ULClabel <- theme(plot.title = element_text(hjust = -0.2, 
+                                            vjust = 0, size = rel(1.5)))
+
+panelB <- ggplot(subsetPapers,aes(x = Ecosystem, y = Proportion)) + 
+  theme_classic(base_size = 12) + xlab("") + ylab("Proportion") + 
+  geom_bar(fill = "darkgray", color = "black", 
+           stat = "identity", width = 0.8) +
+  coord_flip() + 	
+  guides(fill = guide_legend(reverse = TRUE)) +	
+  geom_text(aes(x = 1:6, y = 0.05), data = subsetPapers, 
+            label = rev(subsetN), size = 3) + 
+  labs(title = "B") + ULClabel + 
+  geom_text(label = "Literature\nexamples", x = 1, y = 0.8, size = 3) 	+
+  theme(legend.position = "none")
 
 panelB
 
