@@ -14,6 +14,10 @@
 # One set of bars only (climate disturbance and habitat-forming species only)
 # Remove white bars (all respondents)
 
+# 151112
+# Uploaded new file from Jennifer O'Leary, with corrected expert examples
+# Still need to wait for final corrections on expert papers information
+
 rm(list=ls(all=TRUE)) # removes all previous material from R's memory
 
 # load packages

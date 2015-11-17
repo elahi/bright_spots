@@ -8,6 +8,12 @@
 # Author: Robin Elahi
 # Date: 150707
 #################################################
+### CHANGELOG
+# 151112
+# Uploaded new file from Jennifer O'Leary, with corrected expert examples
+# Still need to wait for final corrections on expert papers information
+
+###
 rm(list=ls(all=TRUE)) # removes all previous material from R's memory
 
 # load packages
@@ -39,20 +45,56 @@ source("./R/process_expert_survey.R")
 
 # filter studies that did not show resilience; select and rename relevant columns
 unique(dat$Resilience)
+
+unique(dat$ResilienceFactorWriteIn1)
+unique(dat$ResilienceFactorWriteIn2)
+
 dat2 <- filter(dat, Resilience == "Yes") %>%
   select(ecosystem, Length_StrongResilience, ResilienceFactorWriteIn1,
          ResilienceFactorWriteIn2, Disturbance_StrongReslience) %>%
   rename(factor1 = ResilienceFactorWriteIn1, 
          factor2 = ResilienceFactorWriteIn2, disturbLength1 = Length_StrongResilience)
 
-summary(dat2)
+dat2 <- droplevels(dat2)
+
+summary(dat2$factor1)
+summary(dat2$factor2)
+View(dat2)
+
+##########
+# Make sure that if factor1 is blank, then factor2 should also be blank
+# If not, then paste factor 2 into space for factor1
+dat2[,3:4] # line 64 is suspect
+
+with(dat2[64,], factor1 == "")
+with(dat2[64,], factor2 != "")
+
+with(dat2[64,], factor1 == "" & factor2 != "")
+
+dat2$suspect <- ifelse(dat2$factor1 == "" & dat2$factor2 != "", "bad", "good")
+
+factor1new <- with(dat2, ifelse(suspect == "good", factor1, factor2))
+dat2$factor1
+cbind(dat2$factor1, factor1new)
+
+# ok, that worked: so now, relabel factor1
+dat2$factor1 <- with(dat2, ifelse(suspect == "good", 
+                                     as.character(factor1), as.character(factor2)))
+##########
 
 # remove studies without a factor1
-dat3 <- dat2 %>% filter(factor1 != "")
+dat3 <- dat2 %>% filter(factor1 != "") 
+unique(dat3$factor1)
 
 # create new factor column
 factorList <- unique(dat3$factor1)
 factorList
+factorList2 <- c("Remaining biogenic habitat", "Recruitment or connectivity", 
+                 "Functional diversity",
+                 "Physical setting", "Remoteness",
+                 "Species interactions")
+"Other", 
+
 factorList2 <- c("Other", "Recruitment or connectivity", 
                  "Remaining biogenic habitat", "Functional diversity",
                  "Physical setting", "Remoteness",
