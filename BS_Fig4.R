@@ -9,12 +9,15 @@
 # Date: 150707
 #################################################
 ### CHANGELOG
-# 151112
+# 151118
 # Uploaded new file from Jennifer O'Leary, with corrected expert examples
 # Still need to wait for final corrections on expert papers information
 
 ###
 rm(list=ls(all=TRUE)) # removes all previous material from R's memory
+
+# load source data
+source("./R/process_expert_survey.R")
 
 # load packages
 library(plyr)
@@ -30,9 +33,6 @@ source("./R/multiplotF.R")
 # EXPERT EXAMPLES
 ################################
 ################################
-
-# load source data
-source("./R/process_expert_survey.R")
 
 ###############
 # Decision tree
@@ -64,83 +64,71 @@ View(dat2)
 ##########
 # Make sure that if factor1 is blank, then factor2 should also be blank
 # If not, then paste factor 2 into space for factor1
-dat2[,3:4] # line 64 is suspect
-
-with(dat2[64,], factor1 == "")
-with(dat2[64,], factor2 != "")
-
-with(dat2[64,], factor1 == "" & factor2 != "")
-
+with(dat2, factor1 == "" & factor2 != "") # looks ok
 dat2$suspect <- ifelse(dat2$factor1 == "" & dat2$factor2 != "", "bad", "good")
 
-factor1new <- with(dat2, ifelse(suspect == "good", factor1, factor2))
-dat2$factor1
-cbind(dat2$factor1, factor1new)
-
-# ok, that worked: so now, relabel factor1
-dat2$factor1 <- with(dat2, ifelse(suspect == "good", 
-                                     as.character(factor1), as.character(factor2)))
+# Don't need to use the following
+# dat2$factor1 <- with(dat2, ifelse(suspect == "good", 
+#                                     as.character(factor1), as.character(factor2)))
 ##########
 
 # remove studies without a factor1
 dat3 <- dat2 %>% filter(factor1 != "") 
 unique(dat3$factor1)
 
-# create new factor column
+
+########## create new names for factor1 column
 factorList <- unique(dat3$factor1)
 factorList
-factorList2 <- c("Remaining biogenic habitat", "Recruitment or connectivity", 
-                 "Functional diversity",
-                 "Physical setting", "Remoteness",
-                 "Species interactions")
-"Other", 
-
-factorList2 <- c("Other", "Recruitment or connectivity", 
-                 "Remaining biogenic habitat", "Functional diversity",
-                 "Physical setting", "Remoteness",
+factorList2 <- c("Recruitment or connectivity", "Remaining biogenic habitat", 
+                 "Functional diversity", "Physical setting", "Other",
+                 "Remoteness", "Genetic diversity", 
                  "Species interactions")
 factorList2
-factorNew <- mapvalues(dat3$factor1, from = factorList, to = factorList2)
-
-dat3 <- cbind(factorNew, dat3)
+factor1New <- mapvalues(dat3$factor1, from = factorList, to = factorList2)
+dat3 <- cbind(factor1New, dat3)
 names(dat3)
 
-dat4 <- dat3 %>% select(factorNew, ecosystem, factor2, Disturbance_StrongReslience) %>%
-  rename(factor1 = factorNew)
-
+# Subset desired columns
+dat4 <- dat3 %>% select(factor1New, ecosystem, factor2, Disturbance_StrongReslience)
 head(dat4)
 
-# I need to get factor 1 and factor 2 in the same column
+########## create new names for factor2 column
 factorList <- unique(dat4$factor2)
 factorList
-factorList2 <- c("NA", "Species interactions",
-                 "Remoteness","Recruitment or connectivity", 
-                 "Management", "Remaining biogenic habitat",
-                  "Functional diversity")
+factorList2 <- c("", "Recruitment or connectivity", 
+                 "Other", "Remaining biogenic habitat", 
+                 "Physical setting", "Functional diversity", 
+                 "Genetic diversity")
+                 
 factorList2
 factor2New <- mapvalues(dat4$factor2, from = factorList, to = factorList2)
 dat5 <- cbind(factor2New, dat4)
 
-datF1 <- data.frame(ecosystem = dat5$ecosystem, factorAll = dat5$factor1, 
+
+########## Get factor 1 and factor 2 in the same column
+head(dat5)
+datF1 <- data.frame(ecosystem = dat5$ecosystem, factorAll = dat5$factor1New, 
                     disturbance = dat5$Disturbance_StrongReslience)
 datF2 <- data.frame(ecosystem = dat5$ecosystem, factorAll = dat5$factor2New, 
                     disturbance = dat5$Disturbance_StrongReslience)
 
-head(datF1)
+# Remove blanks in datF2$disturbance
+datF2 <- datF2 %>% filter(factorAll != "")
 
-datL <- droplevels(rbind(datF1, datF2[datF2$factorAll != "NA", ]))
+# Now combine the two dataframes
+datL <- droplevels(rbind(datF1, datF2))
 datL
 
 # now filter to relevant climate criteria
+# remove 'non climatic' and blank ''
 unique(datL$disturbance)
 
-datSub <- datL %>% filter(disturbance == "Storms" |
-                           disturbance == "Temperature" |
-                           disturbance == "ENSO (temperature/storms)" | 
-                           disturbance == "Multiple" |
-                           disturbance == "Bleaching" |
-                           disturbance == "Sea level rise/ Hydrodynamic change")
+datSub <- datL %>% filter(disturbance != "non climatic" &
+                            disturbance != "")
+
 datSub <- droplevels(datSub)
+
 
 ### GENERALIZED SCRIPT TO GET PERCENTAGES
 tbl1 <- datSub
@@ -159,11 +147,7 @@ str(tbl3)
 
 qplot(factorAll, per, data = tbl3, geom = "boxplot") + coord_flip()
 
-
 detach("package:dplyr", unload = TRUE)
-
-examples <- summarySE(tbl3, measurevar = "per", groupvars = "factorAll")
-examples
 
 # get the frequency values for plotting along the y-axis
 totalN <- as.data.frame(with(datL, table(factorAll)))
@@ -175,20 +159,27 @@ frequency <- totalN$Freq
 frequency <- c(0, frequency)
 frequency
 
-# add genetic diversity row
-gdRow <- data.frame(factorAll = "Genetic diversity", N = 0, per = 0, sd = 0, se = 0, ci = 0)
-examples <- rbind(examples, gdRow)
-examples
-
 # how many yes responses for each habitat?
 with(tbl1, table(ecosystem))
 sum(with(tbl1, table(ecosystem)))
-# 81 total responses, 71 for the climate disturbances
+# 57 total responses relevant climate criteria
+
+# Get summary data
+examples <- summarySE(tbl3, measurevar = "per", groupvars = "factorAll")
+examples
+
+### Add a row for management
+# need to change examples column to a string (not factor)
+extraRow <- data.frame(factorAll = "Management", N = 6, per = 0, sd = 0, 
+                       se = 0, ci = 0)
+examples <- rbind(examples, extraRow)
 
 # custom order of factors
-newFactorOrder <- rev(c("Remaining biogenic habitat", "Recruitment or connectivity", 
-                        "Physical setting", "Functional diversity", "Species interactions", 
-                        "Remoteness", "Management", "Genetic diversity", "Other"))
+unique(examples$factorAll)
+newFactorOrder <- rev(c("Recruitment or connectivity", "Remaining biogenic habitat", 
+                        "Functional diversity", "Physical setting", "Remoteness",
+                        "Genetic diversity", "Species interactions", "Management",
+                        "Other"))
 
 examples$factor2 <- factor(examples$factorAll, levels = newFactorOrder)
 examples
@@ -204,10 +195,11 @@ panelA <- ggplot(examples, aes(x = factor2, y = per)) +
 	width = 0, color = "black") + 
 	coord_flip() + geom_bar(fill = "darkgray", color = "black", stat = "identity") + 
 	labs(title = "A") + ULClabel + 
-	scale_y_continuous(limits = c(0, 0.6)) +
-	geom_text(label = "Expert examples", x = 1, y = 0.42, size = 4) 
+	scale_y_continuous(limits = c(0, 0.8)) +
+	geom_text(label = "Expert examples", x = 1, y = 0.62, size = 4) 
 
 panelA
+# ggsave("./figs/Fig4_panelA.pdf", width = 5, height = 5)
 
 ################################
 ################################
@@ -222,15 +214,17 @@ ecoList <- unique(dat$ecosystem)
 ecoList
 str(ecoList)
 levels(ecoList)
-ecoList2 <- c("Algal forests", "Coral reefs", "Mangroves", "Oyster reefs", "Salt marshes", "Seagrasses")
+ecoList2 <- c("Algal forests", "Coral reefs", "Mangroves", "Oyster reefs", 
+              "Salt marshes", "Seagrasses")
 ecosystemNew <- mapvalues(dat$ecosystem, from = ecoList, to = ecoList2)
 ecosystemNew 
 
 # create new factor column
 factorList <- unique(dat$factor1)
 factorList
-factorList2 <- c("Recruitment or connectivity", "Species interactions", "Physical setting", 
-                 "Remaining biogenic habitat", "Genetic diversity", "Functional diversity", 
+factorList2 <- c("Recruitment or connectivity", "Species interactions", 
+                 "Physical setting", "Remaining biogenic habitat", 
+                 "Genetic diversity", "Functional diversity", 
                  "Remoteness", "Management", "Other")
 
 factorList2
@@ -355,11 +349,11 @@ promDF2$factorNew <- mapvalues(promDF2$promoteFactor, from = factorList, to = fa
 promDF3 <- promDF2 %>% filter(ResilienceResponse == "HabitatFormingSpp" | 
                                 ResilienceResponse == "WholeCommunity")
 
+unique(promDF3$DisturbType1)
 promDF4 <- promDF3 %>% filter(DisturbType1 == "Storms" |
                                 DisturbType1 == "Temperature" |
                                 DisturbType1 == "ENSO" | 
                                 DisturbType1 == ">2 stressors" |
-                                DisturbType1 == "Bleaching" |
                                 DisturbType1 == "Sea level rise/hydrodymic change")
 
 # Now get frequencies for the filtered dataset
@@ -412,7 +406,8 @@ panelC
 # EXPERT OPINIONS - PREVENTING RES
 ################################
 ################################
-dat <- read.csv("./data/bsSurveyResults_140527.csv", header=TRUE, na.strings="NA")
+dat <- read.csv("./data/bsSurveyResults_140527_JO_Oct17.csv", 
+                header=TRUE, na.strings="NA")
 str(dat)
 names(dat)
 dim(dat)
@@ -514,6 +509,7 @@ head(longVI)
 
 prevSummary <- summarySE(longVI, measurevar = "value", 
                          groupvars = c("factor", "resilience"))
+prevSummary
 
 #custom factor order
 prevFactorOrder <- rev(c("Local stressors", "Chronic biotic stressors", 
@@ -650,7 +646,7 @@ panelE <- ggplot(prevPapers, aes(x = factor, y = prop)) +
 panelE
 
 ### with blank panel F
-panelF <- ggplot(prevPapers, aes(x = factor, y = prop)) +
+panelF <- ggplot(examples, aes(x = factor2, y = per)) + 
 	theme_minimal(base_size = 12) + xlab("") + ylab("") + 
 	geom_blank() + 
 	theme(axis.ticks = element_blank(), axis.text = element_blank()) + 
@@ -675,13 +671,13 @@ panelB2 <- ggplot(opinions, aes(x = factor2, y = proportion, fill = resilCat)) +
   
 panelB2
 
-multiplot(panelA, panelB2, panelC, panelF, panelD, panelE, 
+multiplot(panelA, panelB2, panelF, panelF, panelD, panelF, 
 	layout = matrix(c(1, 2, 3, 4, 5, 6), nrow = 2, byrow = TRUE))
 
 
 ###############################
 # save as pdf
-pdf("./figs/BS_Fig4.pdf", 14, 7)
-multiplot(panelA, panelB2, panelC, panelF, panelD, panelE, 
+pdf("./figs/BS_Fig4_temp.pdf", 14, 7)
+multiplot(panelA, panelB2, panelF, panelF, panelD, panelF, 
           layout = matrix(c(1, 2, 3, 4, 5, 6), nrow = 2, byrow = TRUE))
 dev.off()

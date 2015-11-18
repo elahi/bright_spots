@@ -8,6 +8,7 @@
 # Date: 150701
 #################################################
 # CHANGE LOG
+# 18 Nov 2015
 # Updated survey results file
 
 # load packages
@@ -15,7 +16,7 @@ library(plyr)
 library(dplyr)
 
 # load data
-dat <- read.csv("./data/bsSurveyResults_140527_JO_Oct1.csv", header=TRUE, 
+dat <- read.csv("./data/bsSurveyResults_140527_JO_Oct17.csv", header=TRUE, 
                 na.strings="NA")
 names(dat)
 
