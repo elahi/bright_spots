@@ -18,23 +18,16 @@
 # Uploaded new file from Jennifer O'Leary, with corrected expert examples
 # Still need to wait for final corrections on expert papers information
 
-# 151130
-# Following Jen's requested modifications
-# Fig 3A: 2 bars per habitat: 
-# 1st bar = fraction that saw climatic disturbance
-# 2nd bar = of those that saw climatic disturbance, how many saw resilience
-
 rm(list=ls(all=TRUE)) # removes all previous material from R's memory
 
 # load packages
-# library(reshape2)
-
 library(plyr)
 library(dplyr)
+library(reshape2)
 library(ggplot2)
 
 # load source functions
-# source("./R/summarizeData_150204.R")
+source("./R/summarizeData_150204.R")
 source("./R/multiplotF.R")
 ################################
 ################################
@@ -48,98 +41,98 @@ source("./R/multiplotF.R")
 
 # load source data
 source("./R/process_expert_survey.R")
+names(dat)
 
 # Filtering steps
 # 97 respondents to start
 
-################################
-# First step: what fraction of respondents, gave relevant responses (i.e., climate-related)
-# by ecosystem
-head(dat)
-# get relevant columns
-dat2 <- dat %>% select(Ecosystem, ecosystem, Experience, Resilience, Disturbance_StrongReslience)
-# make new column
-unique(dat2$Disturbance_StrongReslience)
-dat2$relevance <- with(dat2, 
-                       ifelse(Disturbance_StrongReslience != "exclude - no disturbance found" &
-                                Disturbance_StrongReslience != "non climatic", 
-                              "yes", "no"))
-head(dat2)
-
-# Create new table with Ecosystem, total sample size, and proportion of relevant responses
-total <- dat2 %>% group_by(ecosystem) %>% summarise(freq = n()) 
-yes <- dat2 %>% group_by(ecosystem, relevance) %>% summarise(freq = n()) %>% 
-  filter(relevance == "yes")
-total$propYes <- yes$freq/total$freq
-total
-names(total) <- c("Ecosystem", "N", "Proportion")
-relevanceDat <- total
-
-################################
-# Second step - filter to observed disturbances and relevant climate criteria
-# And calculate proportion of observed resilience
+# now filter to relevant climate criteria
 unique(dat$Disturbance_StrongReslience)
 
+# Exclude: "exclude - no disturbance found" and "non-climatic"
+  
 datSub <- dat %>% filter(Disturbance_StrongReslience != "exclude - no disturbance found" &
+                          Disturbance_StrongReslience != "non-climatic" &
                           Disturbance_StrongReslience != "non climatic")
 
 datSub <- droplevels(datSub)
 unique(datSub$Disturbance_StrongReslience)
-unique(datSub$Resilience)
 
-# Create new table with Ecosystem, total sample size, and proportion of relevant responses
-total <- datSub %>% group_by(ecosystem) %>% summarise(freq = n()) 
-yes <- datSub %>% group_by(ecosystem, Resilience) %>% summarise(freq = n()) %>% 
-  filter(Resilience == "Yes")
-total
-yes
-total$propYes <- yes$freq/total$freq
-total
-names(total) <- c("Ecosystem", "N", "Proportion")
-resilienceDat <- total
+### ALL 97 RESPONDENTS
+tbl2 <- ddply(dat, .(ecosystem, Resilience), summarise, 
+              freq = length(Resilience), .drop = FALSE) # frequency, I want %
+obs <- aggregate(freq ~ ecosystem, data = tbl2, sum)
+total <- with(tbl2, sum(freq))
 
-# Combine the two dataframes
-relevanceDat
-resilienceDat
-relevanceDat$data <- "relevance"
-resilienceDat$data <- "resilience"
-examplesDF <- rbind(relevanceDat, resilienceDat)
-examplesDF
+yes <- tbl2[tbl2$Resilience == "Yes", ]
+propYes <- yes$freq/(obs$freq)
 
-# Change to factors
-str(examplesDF)
-examplesDF$Ecosystem <- as.factor(examplesDF$Ecosystem)
-examplesDF$data <- as.factor(examplesDF$data)
+tbl3 <- cbind(obs, yes$freq, propYes)
+names(tbl3) <- c("Ecosystem", "N", "Yes", "Proportion")
+
+examples <- tbl3
 
 # Reverse alphabetical
-examplesDF$Ecosystem <- with(examplesDF, factor(Ecosystem, levels = levels(Ecosystem)[order(levels(Ecosystem), 
-                                                                                  decreasing = TRUE)]))
-unique(examplesDF$Ecosystem)
+examples$Ecosystem <- with(examples, factor(Ecosystem, 
+	levels = levels(Ecosystem)[order(levels(Ecosystem), decreasing = TRUE)]))
+unique(examples$Ecosystem)
 
+# Rename to full
+fullDF <- examples
+fullDF
+
+### Subset data to climate disturbances only
+datSub$Resilience # all yes!
+
+tbl2 <- ddply(datSub, .(ecosystem, Resilience), summarise, 
+              freq = length(Resilience), .drop = FALSE) # frequency, I want %
+
+obs <- aggregate(freq ~ ecosystem, data = tbl2, sum)
+total <- with(tbl2, sum(freq))
+
+yes <- tbl2[tbl2$Resilience == "Yes", ]
+propYes <- yes$freq/(obs$freq)
+
+tbl3 <- cbind(obs, yes$freq, propYes)
+names(tbl3) <- c("Ecosystem", "N", "Yes", "Proportion")
+
+examples <- tbl3
+
+# Reverse alphabetical
+examples$Ecosystem <- with(examples, factor(Ecosystem, 
+                                            levels = levels(Ecosystem)[order(levels(Ecosystem), decreasing = TRUE)]))
+unique(examples$Ecosystem)
+
+# rename
+subDF <- examples
+
+### Combine df's
+fullDF$data <- "full"
+subDF$data <- "subset"
+examplesDF <- rbind(fullDF, subDF)
 
 ### Panel A; use ggplot2 
 ULClabel <- theme(plot.title = element_text(hjust = -0.2, 
                                             vjust = 0, size = rel(1.5)))
 
-relevance_N <- relevanceDat$N
-resilience_N <- resilienceDat$N
+subDF <- examplesDF[examplesDF$data == "subset", ]
+fullDF <- examplesDF[examplesDF$data == "full", ]
 
-examplesDF
+subDFn <- examplesDF[examplesDF$data == "subset", ]$N
+fullDFn <- examplesDF[examplesDF$data == "full", ]$N
 
-panelA <- ggplot(examplesDF, aes(x = Ecosystem, y = Proportion, fill = rev(data))) + 
+panelA <- ggplot(subDF,aes(x = Ecosystem, y = Proportion)) + 
   theme_classic(base_size = 12) + xlab("") + ylab("Proportion") + 
-  geom_bar(color = "black", stat = "identity", 
-           position = position_dodge(0.8), width = 0.8) +
+  geom_bar(fill = "darkgray", color = "black", 
+           stat = "identity", width = 0.8) +
+  scale_y_continuous(limits = c(0, 1)) + 
   coord_flip() + 	
-  scale_fill_manual(values = c("darkgray", "white")) + 
   guides(fill = guide_legend(reverse = TRUE)) +	
-  geom_text(aes(x = 0.8:5.8, y = 0.05), data = resilienceDat, 
-            label = rev(resilience_N), size = 2.8) + 
-  geom_text(aes(x = 1.25:6.25, y = 0.05), data = relevanceDat, 
-            label = rev(relevance_N), size = 2.8) +	
+  geom_text(aes(x = 1:6, y = 0.05), data = subDF, 
+            label = rev(subDFn), size = 3) + 
   labs(title = "A") + ULClabel + 
-  geom_text(label = "Expert examples", x = 0.8, y = 0.9, size = 3) 	+
-  theme(legend.position = "none") 
+  geom_text(label = "Expert\nexamples", x = 1, y = 0.9, size = 3)	+
+  theme(legend.position = "none")
 
 panelA
 multiplot(panelA, panelB, cols = 2)

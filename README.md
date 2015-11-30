@@ -1,31 +1,30 @@
-# bright_spots
-Figures and analysis for bright spots manuscript
+BRIGHT SPOTS
+-----------
 
-Notes on figures made by Robin E
+# FIGURES
 
-7 July 2015
+## FIGURE 3 - decision rules
 
-Fig 3A
-Expert examples - response to the question: Have you encountered instances of notable resilience?  
-# Filtering steps
-# 97 respondents to start
-# Remove non-climate disturbances; 57 remaining
+#### Fig 3A
+Expert examples - response to the question:
+Have you encountered instances of notable resilience?  
+Filtering steps
+ 1. 97 respondents to start
+ 2. Remove non-climate disturbances; 71 remaining
 
-Fig 3B
-Lit examples - 
-Start with 131 suggested papers (rows).  
-Removed 4, where paper could not be found (127). 
-Removed 28, where paper was not relevant to the resilience question (99)
-Removed 1, where paper did not give a ResilienceResponse group (e.g., habitat forming species)
-
-So, full lit dataset has 98 rows.  
-
-Including only habitat forming species and whole community - down to 82 rows. 
-Including only climatic disturbances, down to 51 rows.  
+#### Fig 3B
+Literature examples
+ 1. Start with 131 suggested papers (rows).  
+ 2. Removed 4, where paper could not be found (127). 
+ 3. Removed 28, where paper was not relevant to the resilience question (90)
+ 4. Removed 1, where paper did not give a ResilienceResponse group 
+ (e.g., habitat forming species). So, full lit dataset has 89 rows.  
+ 5. Including only habitat forming species and whole community - down to 74 rows. 
+ 6. Including only climatic disturbances, down to 60 rows.  
 (Did not remove restoration)
 
 
-#######################################################
+## FIGURE 4 - decision rules
 
 Fig 4A, B, C - promoting resilience; D, E - preventing resilience
 
@@ -66,8 +65,8 @@ Started with 97 rows.  calculated percentages for very important responses - fro
 # Select climate disturbances; 34 remaining
 
 
-#######################################################
-Fig S4
+## FIGURE S4 - decision rules
+
 
 S4A - expert examples
 # Filtering steps
