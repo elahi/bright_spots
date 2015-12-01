@@ -24,6 +24,12 @@
 # 1st bar = fraction that saw climatic disturbance
 # 2nd bar = of those that saw climatic disturbance, how many saw resilience
 
+# 151201
+# More changes to the data files - received from Jen on 1 Dec 2015
+# (Final revisions)
+
+################################################################
+### LOAD FILES AND PACKAGES
 rm(list=ls(all=TRUE)) # removes all previous material from R's memory
 
 # load packages
@@ -36,11 +42,10 @@ library(ggplot2)
 # load source functions
 # source("./R/summarizeData_150204.R")
 source("./R/multiplotF.R")
-################################
-################################
-# EXPERT EXAMPLES
-################################
-################################
+
+################################################################
+###### EXPERT EXAMPLES
+
 # Ecosystem Resilience Survey = ERS
 ### ERS Question 5
 ###  In your research, have you encountered instances of notable RESILIENCE, 
@@ -52,12 +57,15 @@ source("./R/process_expert_survey.R")
 # Filtering steps
 # 97 respondents to start
 
-################################
-# First step: what fraction of respondents, gave relevant responses (i.e., climate-related)
-# by ecosystem
+###### First step: what fraction of respondents, 
+# gave relevant responses (i.e., climate-related) by ecosystem
 head(dat)
+names(dat)
+
 # get relevant columns
-dat2 <- dat %>% select(Ecosystem, ecosystem, Experience, Resilience, Disturbance_StrongReslience)
+dat2 <- dat %>% select(Ecosystem, ecosystem, Experience, Resilience, 
+                       Disturbance_StrongReslience)
+
 # make new column
 unique(dat2$Disturbance_StrongReslience)
 dat2$relevance <- with(dat2, 
@@ -75,9 +83,8 @@ total
 names(total) <- c("Ecosystem", "N", "Proportion")
 relevanceDat <- total
 
-################################
-# Second step - filter to observed disturbances and relevant climate criteria
-# And calculate proportion of observed resilience
+###### Second step: filter to observed disturbances and relevant 
+# climate criteria and calculate proportion of observed resilience
 unique(dat$Disturbance_StrongReslience)
 
 datSub <- dat %>% filter(Disturbance_StrongReslience != "exclude - no disturbance found" &
@@ -101,8 +108,8 @@ resilienceDat <- total
 # Combine the two dataframes
 relevanceDat
 resilienceDat
-relevanceDat$data <- "relevance"
-resilienceDat$data <- "resilience"
+relevanceDat$data <- "Relevant expert opinions"
+resilienceDat$data <- "Observed resilience"
 examplesDF <- rbind(relevanceDat, resilienceDat)
 examplesDF
 
@@ -111,22 +118,28 @@ str(examplesDF)
 examplesDF$Ecosystem <- as.factor(examplesDF$Ecosystem)
 examplesDF$data <- as.factor(examplesDF$data)
 
+# Reorder data levels
+examplesDF$data <- factor(examplesDF$data, 
+                        levels = c("Relevant expert opinions", "Observed resilience"))
+levels(examplesDF$data)
+
 # Reverse alphabetical
-examplesDF$Ecosystem <- with(examplesDF, factor(Ecosystem, levels = levels(Ecosystem)[order(levels(Ecosystem), 
-                                                                                  decreasing = TRUE)]))
+examplesDF$Ecosystem <- 
+  with(examplesDF, factor(Ecosystem, 
+                          levels = levels(Ecosystem)[order(levels(Ecosystem), 
+                                 decreasing = TRUE)]))
 unique(examplesDF$Ecosystem)
 
-
-### Panel A; use ggplot2 
+### Panel A
 ULClabel <- theme(plot.title = element_text(hjust = -0.2, 
                                             vjust = 0, size = rel(1.5)))
-
 relevance_N <- relevanceDat$N
 resilience_N <- resilienceDat$N
 
 examplesDF
 
-panelA <- ggplot(examplesDF, aes(x = Ecosystem, y = Proportion, fill = rev(data))) + 
+panelA <- ggplot(examplesDF, 
+                 aes(x = Ecosystem, y = Proportion, fill = rev(data))) + 
   theme_classic(base_size = 12) + xlab("") + ylab("Proportion") + 
   geom_bar(color = "black", stat = "identity", 
            position = position_dodge(0.8), width = 0.8) +
@@ -141,107 +154,142 @@ panelA <- ggplot(examplesDF, aes(x = Ecosystem, y = Proportion, fill = rev(data)
   geom_text(label = "Expert examples", x = 0.8, y = 0.9, size = 3) 	+
   theme(legend.position = "none") 
 
-panelA
-multiplot(panelA, panelB, cols = 2)
+examplesDF
 
-################################
-################################
-# EXPERT PAPERS
-################################
-################################
+panelA <- ggplot(data = examplesDF, aes(Ecosystem, Proportion, 
+                            fill = data)) + 
+  theme_classic(base_size = 12) + xlab("") + ylab("Proportion") + 
+  geom_bar(stat = "identity", position = "stack", color = "black") + 
+  scale_fill_manual(values = c("white", "black")) + 
+  facet_grid(. ~ data) + coord_flip() + 
+  theme(legend.position = "none") + 
+  scale_x_discrete("", labels = c("Algal forests" = "Algal forests\n(18/12)", 
+                                  "Coral reefs" = "Coral reefs\n(19/18)", 
+                                  "Mangroves" = "Mangroves\n(15/10)", 
+                                  "Oyster reefs" = "Oyster reefs\n(13/6)", 
+                                  "Salt marshes" = "Salt marshes\n(15/12)", 
+                                  "Seagrasses" = "Seagrasses\n(17/13)")) + 
+  labs(title = "A") + ULClabel + 
+  theme(panel.margin = unit(2, "lines"))
+
+multiplot(panelA, panelB, cols = 1)
+
+################################################################
+###### EXPERT PAPERS
 
 # load source data
 source("./R/process_expert_papers.R")
 
-#################################################
-# Get proportions for litSub (only habitat formers, whole comm, climatic dist)
-summary(litSub)
-totalN <- ddply(litSub, .(ecosystem), summarise, 
-                totalN = length(ecosystem), .drop = FALSE) 
-totalN
+# This is the frequency of all papers
+litOrig %>% group_by(ecosystem) %>% summarise(freq = n())
+# This is the frequency of relevant papers
+litSub %>% group_by(ecosystem) %>% summarise(freq = n())
 
-litSub2 <- litSub[litSub$ResilienceOutcome != "No", ]
-litSub2
-totalYes <- ddply(litSub2, .(ecosystem), summarise, 
-                  freqYes = length(ecosystem), .drop = FALSE) 
-summary(litSub2)
+###### First step: what fraction of papers, 
+# gave relevant responses (i.e., climate-related) by ecosystem
 
-litData <- cbind(totalN, totalYes$freqYes)
-colnames(litData)[3] <- "freqYes"
-head(litData)
-litData$dataset <- rep("subset", 6)
-litData
+# Create new table with Ecosystem, total sample size, and 
+# proportion of relevant papers
+total <- litOrig %>% group_by(ecosystem) %>% summarise(freq = n())
+yes <- litSub %>% group_by(ecosystem) %>% summarise(freq = n())
+total$Resilience <- "Relevance"
+total$propYes <- yes$freq/total$freq
+total
+names(total) <- c("Ecosystem", "N", "Resilience", "Proportion")
+relDat <- total
 
-#################################################
-# Get proportions for litFull (98 papers)
-summary(litFull)
+###### Second step: Calculate proportion of observed resilience
+# Create new table with Ecosystem, total sample size, and 
+# proportion of relevant papers
+total <- litSub %>% group_by(ecosystem) %>% summarise(freq = n()) 
 
-totalNfull <- ddply(litFull, .(ecosystem), summarise, 
-                    totalN = length(ecosystem), .drop = FALSE) 
-totalNfull
-levels(litFull$ResilienceOutcome)
+# use ddply because allows me to use .drop = FALSE (keeps all ecosystems)
 
-litFull2 <- litFull[litFull$ResilienceOutcome == "Yes" |
-               litFull$ResilienceOutcome == "Context-Dependent", ]
-dim(litFull2)
 
-totalYesFull <- ddply(litFull2, .(ecosystem), summarise, 
-                      freqYesFull = length(ecosystem), .drop = FALSE) 
-summary(totalYesFull)
-totalYesFull
+no <- litSub %>% group_by(ResilienceOutcome) %>% 
+  filter(ResilienceOutcome == "No") %>% 
+  ddply(.(ecosystem), summarise, freq = length(ecosystem), 
+        .drop = FALSE) 
 
-litDataFull <- cbind(totalNfull, totalYesFull$freqYesFull)
-litDataFull
-colnames(litDataFull)[3] <- "freqYes"
-litDataFull$dataset <- rep("full", 6)
+yes <- litSub %>% group_by(ResilienceOutcome) %>% 
+  filter(ResilienceOutcome == "Yes") %>% 
+  ddply(.(ecosystem), summarise, freq = length(ecosystem), 
+        .drop = FALSE) 
 
-#################################################
-# Combine litData and litFull
-litData
-litDataFull
+cd <- litSub %>% group_by(ResilienceOutcome) %>% 
+  filter(ResilienceOutcome == "Context-Dependent") %>% 
+  ddply(.(ecosystem), summarise, freq = length(ecosystem), 
+        .drop = FALSE) 
 
-litData2 <- rbind(litData, litDataFull)
-litData2$prop <- with(litData2, freqYes/totalN)
-colnames(litData2) <- c("Ecosystem", "N", "Yes", "Dataset", "Proportion")
-litData2
+total$propNo <- no$freq/total$freq
+total$propYes <- yes$freq/total$freq
+total$propCD <- cd$freq/total$freq
+total$yesCD <- 1 - total$propNo
 
-unique(litData2$Ecosystem)
-unique(litData2$Dataset)
-litData2$Ecosystem <- with(litData2, factor(Ecosystem, 
-	levels = levels(Ecosystem)[order(levels(Ecosystem), decreasing = TRUE)]))
+total
 
-litData2
+names(total) <- c("Ecosystem", "N", "No", "Yes", "Context", "YesCD")
+total
+resDat <- total
 
-###############################
-# MULTIPANEL PLOT
-subsetPapers <- litData2[litData2$Dataset == "subset", ]
-fullPapers <- litData2[litData2$Dataset == "full", ]
+# make long
+resDatL <- resDat %>% 
+  tidyr::gather(key = Resilience, value = "Proportion", No:YesCD) %>%
+  filter(Resilience == "Yes" | Resilience == "Context")
+resDatL
 
-subsetN <- litData2[litData2$Dataset == "subset", ]$N
-fullN <- litData2[litData2$Dataset == "full", ]$N
 
+# Combine the two dataframes
+relDat$data <- "Relevant literature"
+resDatL$data <- "Observed resilience"
+papersDF <- rbind(relDat, resDatL)
+
+# Change to factors
+str(papersDF)
+papersDF$Resilience <- as.factor(papersDF$Resilience)
+papersDF$data <- as.factor(papersDF$data)
+
+# Reorder data levels
+papersDF$data <- factor(papersDF$data, 
+                              levels = c("Relevant literature", "Observed resilience"))
+levels(papersDF$data)
+
+# Reverse alphabetical
+papersDF$Ecosystem <- 
+  with(papersDF, factor(Ecosystem, 
+                          levels = levels(Ecosystem)[order(levels(Ecosystem), 
+                                                           decreasing = TRUE)]))
+unique(papersDF$Ecosystem)
+
+
+### Panel B
 ULClabel <- theme(plot.title = element_text(hjust = -0.2, 
                                             vjust = 0, size = rel(1.5)))
+relevance_N <- relDat$N
+resilience_N <- resDatL$N[1:6]
 
-panelB <- ggplot(subsetPapers,aes(x = Ecosystem, y = Proportion)) + 
+papersDF
+
+panelB <- ggplot(data = papersDF, aes(Ecosystem, Proportion, 
+                            fill = Resilience)) + 
   theme_classic(base_size = 12) + xlab("") + ylab("Proportion") + 
-  geom_bar(fill = "darkgray", color = "black", 
-           stat = "identity", width = 0.8) +
-  coord_flip() + 	
-  guides(fill = guide_legend(reverse = TRUE)) +	
-  geom_text(aes(x = 1:6, y = 0.05), data = subsetPapers, 
-            label = rev(subsetN), size = 3) + 
+  geom_bar(stat = "identity", position = "stack", color = "black") + 
+  scale_fill_manual(values = c("darkgray", "white", "black")) + 
+  facet_grid(. ~ data) + coord_flip() + 
+  theme(legend.position = "none") + 
+  scale_x_discrete("", labels = c("Algal forests" = "Algal forests\n(29/16)", 
+                                  "Coral reefs" = "Coral reefs\n(22/17)", 
+                                  "Mangroves" = "Mangroves\n(24/10)", 
+                                  "Oyster reefs" = "Oyster reefs\n(12/1)", 
+                                  "Salt marshes" = "Salt marshes\n(23/3)", 
+                                  "Seagrasses" = "Seagrasses\n(21/8)")) + 
   labs(title = "B") + ULClabel + 
-  geom_text(label = "Literature\nexamples", x = 1, y = 0.8, size = 3) 	+
-  theme(legend.position = "none")
-
-panelB
-
-
+  theme(panel.margin = unit(2, "lines"))
+  
 ###############################
-# save as 7 x 3.5 pdf
-pdf("./figs/BS_Fig3.pdf", 7, 3.5)
-multiplot(panelA, panelB, cols = 2)
+# save as pdf
+pdf("./figs/BS_Fig3.pdf", 7, 7)
+multiplot(panelA, panelB, cols = 1)
 dev.off()	
 
 

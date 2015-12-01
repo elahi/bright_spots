@@ -8,108 +8,80 @@
 # Date: 150701
 #################################################
 # CHANGE LOG
-# 151001
-# J OLeary updated papers list file:
+# 151001 - JO updated papers list file
 # PapersList2_NL_150526_JO_Oct1.csv
+# 151201 - JO updated papers list file
+# BS_RecommendedLiterature_Final_Nov30_2015.csv
+#################################################
 
-##########################################################################
-# Decision tree for expert suggested papers
-# Start with 131 suggested papers (rows).  
-# Removed 4, where paper could not be found (127). 
-# Removed 28, where paper was not relevant to the resilience question (99)
-# Removed 1, where paper did not give a ResilienceResponse group 
-# (e.g., habitat forming species)
-# 
-# So, full lit dataset has 98 rows.  
-# 
-# Including only habitat forming species and whole community - down to 82 rows. 
-# Including only climatic disturbances, down to 51 rows.  
-# (Did not remove restoration)
-##########################################################################
-
-dat <- read.csv("./data/PapersList2_NL_150526_JO_Oct1.csv", header=TRUE, na.strings="NA")
+dat <- read.csv("./data/BS_RecommendedLiterature_Final_Nov30_2015.csv", 
+                header=TRUE, na.strings = "NA")
 head(dat)
 unique(dat$Paper)
+names(dat)
 
+###########################
+###########################
+### Clean up  the data frame
 # create new ecosystem column (with easier names)
 ecoList <- unique(dat$EcosystemType)
 ecoList
-str(ecoList)
-levels(ecoList)
-ecoList2 <- c("Algal forests", "Coral reefs", "Mangroves", "Oyster reefs", 
-              "Salt marshes", "Seagrasses")
-dat$ecosystemNew <- mapvalues(dat$EcosystemType, from = ecoList, to = ecoList2)
+ecoList2 <- c("Seagrasses", "Algal forests", "Coral reefs", 
+              "Oyster reefs", "Mangroves", "Salt marshes")
+
+dat$ecosystemNew <- mapvalues(dat$EcosystemType, from = ecoList, 
+                              to = ecoList2)
+dat %>% select(EcosystemType, ecosystemNew)
 
 # select relevant columns and rename
-dat2 <- dat %>% select(Paper, ecosystemNew, ResilienceOutcome, ResilienceResponse,
-                        DisturbType1, DisturbType2, PaperType) %>%
+dat2 <- dat %>% select(Paper, PaperType, ecosystemNew, EcosystemType, 
+                       ResilienceOutcome, ResilienceCat, ResilienceResponse,
+                        DisturbType1, DisturbType2, DISTURBANCE.COMPILED) %>%
   rename(ecosystem = ecosystemNew)
 dat2 <- droplevels(dat2)
 
 # This is the frequency of all papers
 dat2 %>% group_by(ecosystem) %>% summarise(freq = n())
 
+# rename
+litOrig <- dat2
+
+###########################
+###########################
 ### Need to get relevant papers
 
 # Remove rows where the paper could not be found
 unique(dat2$PaperType)
+summary(dat2$PaperType)
 dat2 <- dat2 %>% filter(PaperType != "can't find paper")
 
 # Remove rows where the paper was not relevant to resilience
 unique(dat2$PaperType)
-dat3 <- dat2 %>% filter(PaperType != "NotRelevant")
-dim(dat3) # 90 rows, keeping restoration 
+dat3 <- dat2 %>% filter(PaperType != "Not Relevant")
 
-# Remove rows where paper had no ResilienceResponse group (e.g., habitat forming species)
-summary(dat3$ResilienceResponse)
-dat3 %>% filter(ResilienceResponse == "" ) # this paper does not appear relevant
-dat4 <- dat3 %>% filter(ResilienceResponse != "" )
+# Remove rows where the paper was on restoration 
+summary(dat3$ResilienceCat)
+dat4 <- dat3 %>% filter(ResilienceCat != "Restoration")
+
+# Remove rows where paper had no ResilienceResponse group? 
+# (e.g., habitat forming species)
+summary(dat4$ResilienceResponse)
+dat4 %>% filter(ResilienceResponse == "" ) 
+# this paper was in reference to non climatic disturbance so will
+# be removed anyway
 
 dat4 <- droplevels(dat4)
 unique(dat4$PaperType)
 unique(dat4$DisturbType1)
 
-#################################################
-# rename
-litOrig <- dat2
-litFull <- dat4
-#################################################
-
 ### Now include only habitat forming species AND whole community
-# and climatic disturbances
-unique(litFull$ResilienceResponse)
-litSub <- litFull %>% filter(ResilienceResponse == "HabitatFormingSpp" |
+unique(dat4$ResilienceResponse)
+dat5 <- dat4 %>% filter(ResilienceResponse == "HabitatFormingSpp" |
                                ResilienceResponse == "WholeCommunity")
-litSub <- droplevels(litSub)
+dat5 <- droplevels(dat5)
 
-unique(litSub$DisturbType1)
-unique(litSub$DisturbType2)
-unique(litSub$ResilienceOutcome)
+### Remove non climatic disturbances
+unique(dat5$DISTURBANCE.COMPILED)
+litSub <- dat5 %>% filter(DISTURBANCE.COMPILED != "non climatic")
 
-# For disturbType1
-# keep only climatic disturbances
-litSub1 <- litSub %>% filter(DisturbType1 == "Storms" |
-                               DisturbType1 == "Temperature" |
-                               DisturbType1 == "ENSO" |
-                               DisturbType1 == ">2 stressors" |
-                               DisturbType1 == "Sea level rise/hydrodymic change")
-# For disturbType2
-# keep only climatic disturbances
-litSub2 <- litSub %>% filter(DisturbType2 == "Storms" |
-                               DisturbType2 == "Temperature" |
-                               DisturbType2 == "ENSO" |
-                               DisturbType2 == ">2 stressors" |
-                               DisturbType2 == "Sea level rise/hydrodymic change")
-
-head(litSub)
-
-# now merge the two datasets, so that I get all the studies that have at least 1 climate-related
-# disturbance, regardless of where it was listed
-litSub3 <- full_join(litSub1, litSub2)
-head(litSub3)
-
-#################################################
-#################################################
-litSub <- litSub3
-#################################################
 #################################################

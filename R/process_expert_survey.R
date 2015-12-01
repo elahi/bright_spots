@@ -7,13 +7,22 @@
 # Author: Robin Elahi
 # Date: 150701
 #################################################
-# CHANGE LOG
+### CHANGE LOG
 # 18 Nov 2015
 # Updated survey results file
+# 1 Dec 2015
+# Final version of survey results file
 
+#################################################
 # load data
-dat <- read.csv("./data/bsSurveyResults_140527_JO_Oct17.csv", header=TRUE, 
-                na.strings="NA")
+dat <- read.csv("./data/BS_SurveyResults_Final_Nov30_2015.csv", 
+                header=TRUE, na.strings = "NA")
+
+#dat <- read.csv("./data/BS_SurveyResults_Final_Nov30_2015.csv", 
+#                header=TRUE, na.strings = c("", "NA"))
+
+summary(dat)
+
 names(dat)
 
 unique(dat$Ecosystem)

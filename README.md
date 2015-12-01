@@ -14,14 +14,13 @@ Filtering steps
 
 #### Fig 3B
 Literature examples
- 1. Start with 131 suggested papers (rows).  
- 2. Removed 4, where paper could not be found (127). 
- 3. Removed 28, where paper was not relevant to the resilience question (90)
- 4. Removed 1, where paper did not give a ResilienceResponse group 
- (e.g., habitat forming species). So, full lit dataset has 89 rows.  
- 5. Including only habitat forming species and whole community - down to 74 rows. 
- 6. Including only climatic disturbances, down to 60 rows.  
-(Did not remove restoration)
+ 1. Start with 131 suggested papers - called 'litOrig' (131 rows).  
+ 2. Removed 1 paper that could not be found (130)
+ 3. Removed 43 papers that were not relevant to the resilience question (87)
+ 4. Removed 0 papers that were on restoration (87)
+ This dataset is called 'litFull' 
+ 5. Including only habitat forming species and whole community (70) 
+ 6. Including only climatic disturbances (55) - called 'litSub'
 
 
 ## FIGURE 4 - decision rules
