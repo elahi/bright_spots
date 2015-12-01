@@ -1,0 +1,4 @@
+$ cat .gitignore
+
+# Ignore my personal notes folder
+personal_notes/
