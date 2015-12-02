@@ -130,29 +130,12 @@ examplesDF$Ecosystem <-
                                  decreasing = TRUE)]))
 unique(examplesDF$Ecosystem)
 
-### Panel A
-ULClabel <- theme(plot.title = element_text(hjust = -0.2, 
+############
+#### Panel A
+ULClabel <- theme(plot.title = element_text(hjust = -0.08, 
                                             vjust = 0, size = rel(1.5)))
 relevance_N <- relevanceDat$N
 resilience_N <- resilienceDat$N
-
-examplesDF
-
-panelA <- ggplot(examplesDF, 
-                 aes(x = Ecosystem, y = Proportion, fill = rev(data))) + 
-  theme_classic(base_size = 12) + xlab("") + ylab("Proportion") + 
-  geom_bar(color = "black", stat = "identity", 
-           position = position_dodge(0.8), width = 0.8) +
-  coord_flip() + 	
-  scale_fill_manual(values = c("darkgray", "white")) + 
-  guides(fill = guide_legend(reverse = TRUE)) +	
-  geom_text(aes(x = 0.8:5.8, y = 0.05), data = resilienceDat, 
-            label = rev(resilience_N), size = 2.8) + 
-  geom_text(aes(x = 1.25:6.25, y = 0.05), data = relevanceDat, 
-            label = rev(relevance_N), size = 2.8) +	
-  labs(title = "A") + ULClabel + 
-  geom_text(label = "Expert examples", x = 0.8, y = 0.9, size = 3) 	+
-  theme(legend.position = "none") 
 
 examplesDF
 
@@ -163,6 +146,7 @@ panelA <- ggplot(data = examplesDF, aes(Ecosystem, Proportion,
   scale_fill_manual(values = c("white", "black")) + 
   facet_grid(. ~ data) + coord_flip() + 
   theme(legend.position = "none") + 
+  scale_y_continuous(limits = c(0,1)) + 
   scale_x_discrete("", labels = c("Algal forests" = "Algal forests\n(18/12)", 
                                   "Coral reefs" = "Coral reefs\n(19/18)", 
                                   "Mangroves" = "Mangroves\n(15/10)", 
@@ -263,13 +247,13 @@ unique(papersDF$Ecosystem)
 
 
 ### Panel B
-ULClabel <- theme(plot.title = element_text(hjust = -0.2, 
-                                            vjust = 0, size = rel(1.5)))
 relevance_N <- relDat$N
 resilience_N <- resDatL$N[1:6]
 
 papersDF
 
+############
+# Panel B
 panelB <- ggplot(data = papersDF, aes(Ecosystem, Proportion, 
                             fill = Resilience)) + 
   theme_classic(base_size = 12) + xlab("") + ylab("Proportion") + 
@@ -277,6 +261,7 @@ panelB <- ggplot(data = papersDF, aes(Ecosystem, Proportion,
   scale_fill_manual(values = c("darkgray", "white", "black")) + 
   facet_grid(. ~ data) + coord_flip() + 
   theme(legend.position = "none") + 
+  scale_y_continuous(limits = c(0,1)) + 
   scale_x_discrete("", labels = c("Algal forests" = "Algal forests\n(29/16)", 
                                   "Coral reefs" = "Coral reefs\n(22/17)", 
                                   "Mangroves" = "Mangroves\n(24/10)", 
