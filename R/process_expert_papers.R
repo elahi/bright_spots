@@ -33,10 +33,14 @@ dat$ecosystemNew <- mapvalues(dat$EcosystemType, from = ecoList,
                               to = ecoList2)
 dat %>% select(EcosystemType, ecosystemNew)
 
+names(dat)
+
 # select relevant columns and rename
 dat2 <- dat %>% select(Paper, PaperType, ecosystemNew, EcosystemType, 
                        ResilienceOutcome, ResilienceCat, ResilienceResponse,
-                        DisturbType1, DisturbType2, DISTURBANCE.COMPILED) %>%
+                        DisturbType1, DisturbType2, DISTURBANCE.COMPILED, 
+                       MostImportantFactor1, MostImportFactor2, 
+                       FactorsPreventingResilience1, FactorsPreventingResilience2) %>%
   rename(ecosystem = ecosystemNew)
 dat2 <- droplevels(dat2)
 

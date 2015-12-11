@@ -108,7 +108,7 @@ resilienceDat <- total
 # Combine the two dataframes
 relevanceDat
 resilienceDat
-relevanceDat$data <- "Relevant expert opinions"
+relevanceDat$data <- "Relevant expert examples"
 resilienceDat$data <- "Observed resilience"
 examplesDF <- rbind(relevanceDat, resilienceDat)
 examplesDF
@@ -120,7 +120,7 @@ examplesDF$data <- as.factor(examplesDF$data)
 
 # Reorder data levels
 examplesDF$data <- factor(examplesDF$data, 
-                        levels = c("Relevant expert opinions", "Observed resilience"))
+                        levels = c("Relevant expert examples", "Observed resilience"))
 levels(examplesDF$data)
 
 # Reverse alphabetical
@@ -130,8 +130,8 @@ examplesDF$Ecosystem <-
                                  decreasing = TRUE)]))
 unique(examplesDF$Ecosystem)
 
-############
-#### Panel A
+
+###### Panel A ######
 ULClabel <- theme(plot.title = element_text(hjust = -0.08, 
                                             vjust = 0, size = rel(1.5)))
 relevance_N <- relevanceDat$N
@@ -156,11 +156,9 @@ panelA <- ggplot(data = examplesDF, aes(Ecosystem, Proportion,
   labs(title = "A") + ULClabel + 
   theme(panel.margin = unit(2, "lines"))
 
-multiplot(panelA, panelB, cols = 1)
+# multiplot(panelA, panelB, cols = 1)
 
-################################################################
-###### EXPERT PAPERS
-
+###### EXPERT PAPERS #####
 # load source data
 source("./R/process_expert_papers.R")
 
@@ -188,8 +186,6 @@ relDat <- total
 total <- litSub %>% group_by(ecosystem) %>% summarise(freq = n()) 
 
 # use ddply because allows me to use .drop = FALSE (keeps all ecosystems)
-
-
 no <- litSub %>% group_by(ResilienceOutcome) %>% 
   filter(ResilienceOutcome == "No") %>% 
   ddply(.(ecosystem), summarise, freq = length(ecosystem), 
@@ -252,15 +248,16 @@ resilience_N <- resDatL$N[1:6]
 
 papersDF
 
-############
-# Panel B
+###### Panel B #####
 panelB <- ggplot(data = papersDF, aes(Ecosystem, Proportion, 
                             fill = Resilience)) + 
   theme_classic(base_size = 12) + xlab("") + ylab("Proportion") + 
   geom_bar(stat = "identity", position = "stack", color = "black") + 
   scale_fill_manual(values = c("darkgray", "white", "black")) + 
   facet_grid(. ~ data) + coord_flip() + 
-  theme(legend.position = "none") + 
+  theme(legend.justification = c(1,0), legend.position = c(1, 0.1)) +
+  
+  # theme(legend.position = "none") + 
   scale_y_continuous(limits = c(0,1)) + 
   scale_x_discrete("", labels = c("Algal forests" = "Algal forests\n(29/16)", 
                                   "Coral reefs" = "Coral reefs\n(22/17)", 

@@ -24,25 +24,43 @@ Literature examples
 
 
 ## FIGURE 4 - decision rules
-
 Fig 4A, B, C - promoting resilience; D, E - preventing resilience
 
-Restoration was reclassified as management.  
+#### Fig 4A
+What factors promote resilience? Used respondents in survey that did 
+observe at least one instance of resilience.
 
-4A - expert examples.  
-# Decision tree
-# Factors promoting resilience - expert examples
-# Start with 97 rows (respondents)
-# Remove 30 respondents who did not observe resilience; 67 rows
-# Remove 3 respondents who did not give a factor1 for resilience; 64 rows
-# Combined two listed factors; 81 rows
-# Removed non-climate disturbances; 71 rows
-
-4B - expert opinions. 
+Filtering steps
+ 1. 97 respondents to start
+ 2. Remove non-climate disturbances; 71 remaining
+ 3. Some respondents gave more than one factor promoting resilience; 
+ each of these were counted separately.
+ 4. Collating both factors into one column resulted in a dataframe with 
+ 72 rows (some respondents gave no factors promoting resilience)
+ 
+#### Fig 4B
+Expert opinions. 
 Calculated percentage of 'very important' responses for resistance and recovery separately.  
 Used Jen's summary.  
 
-4C - expert papers
+#### Fig 4C
+Literature examples
+Follow decision rules for Fig 3B, start with litSub (55)
+ 1. Remove papers without evidence of resilience (46)
+ 2. Remove one paper without a factor promoting resilience (45)
+ 3. Some papers gave more than one factor promoting resilience; 
+ each of these were counted separately.
+ 4. Collating both factors into one column (67)
+
+#### Fig 4D
+
+
+#### Fig 4E
+Literature examples - resume after step 2 (45)
+ 1. Collated both factors preventing resilience into one column (49)
+
+
+
 # Filtering steps
 # 98 papers to start
 # Remove papers without evidence of resilience; 75

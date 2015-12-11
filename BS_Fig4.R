@@ -8,48 +8,37 @@
 # Author: Robin Elahi
 # Date: 150707
 #################################################
-### CHANGELOG
+
+##### CHANGELOG #####
 # 151118
 # Uploaded new file from Jennifer O'Leary, with corrected expert examples
 # Still need to wait for final corrections on expert papers information
 
+### 151210
+# Uploaded new file from JO, with final corrections on expert papers
+
 ###
 rm(list=ls(all=TRUE)) # removes all previous material from R's memory
 
-# load source data
-source("./R/process_expert_survey.R")
-
+##### LOAD PACKAGES, DATA #####
 # load packages
 library(plyr)
 library(dplyr)
 library(reshape2)
 library(ggplot2)
 
-# load source functions
+# load source data
+source("./R/process_expert_survey.R")
 source("./R/summarizeData_150204.R")
 source("./R/multiplotF.R")
-################################
-################################
-# EXPERT EXAMPLES
-################################
-################################
 
-###############
-# Decision tree
-# Factors promoting resilience - expert examples
-# Start with 97 rows (respondents)
-# Remove 30 respondents who did not observe resilience; 67 rows
-# Remove 3 respondents who did not give a factor1 for resilience; 64 rows
-# Combined two listed factors; 81 rows
-# Removed non-climate disturbances; 71 rows
+##### EXPERT EXAMPLES #####
+# Get subset of relevant rows
+datSub <- dat %>% filter(Disturbance_StrongReslience != "exclude - no disturbance found" &
+                           Disturbance_StrongReslience != "non climatic")
 
-# filter studies that did not show resilience; select and rename relevant columns
-unique(dat$Resilience)
-
-unique(dat$ResilienceFactorWriteIn1)
-unique(dat$ResilienceFactorWriteIn2)
-
-dat2 <- filter(dat, Resilience == "Yes") %>%
+# Get subset of relevant columns 
+dat2 <- datSub %>%
   select(ecosystem, Length_StrongResilience, ResilienceFactorWriteIn1,
          ResilienceFactorWriteIn2, Disturbance_StrongReslience) %>%
   rename(factor1 = ResilienceFactorWriteIn1, 
@@ -57,12 +46,8 @@ dat2 <- filter(dat, Resilience == "Yes") %>%
 
 dat2 <- droplevels(dat2)
 
-summary(dat2$factor1)
-summary(dat2$factor2)
+#### Make sure that if factor1 is blank, then factor2 should also be blank
 View(dat2)
-
-##########
-# Make sure that if factor1 is blank, then factor2 should also be blank
 # If not, then paste factor 2 into space for factor1
 with(dat2, factor1 == "" & factor2 != "") # looks ok
 dat2$suspect <- ifelse(dat2$factor1 == "" & dat2$factor2 != "", "bad", "good")
@@ -70,14 +55,14 @@ dat2$suspect <- ifelse(dat2$factor1 == "" & dat2$factor2 != "", "bad", "good")
 # Don't need to use the following
 # dat2$factor1 <- with(dat2, ifelse(suspect == "good", 
 #                                     as.character(factor1), as.character(factor2)))
-##########
+####
 
-# remove studies without a factor1
-dat3 <- dat2 %>% filter(factor1 != "") 
-unique(dat3$factor1)
+### remove studies without a blank factor1
+dat3 <- dat2 %>% filter(factor1 != "")
+dat3 <- droplevels(dat3)
+levels(dat3$factor1)
 
-
-########## create new names for factor1 column
+### create new names for factor1 column
 factorList <- unique(dat3$factor1)
 factorList
 factorList2 <- c("Recruitment or connectivity", "Remaining biogenic habitat", 
@@ -96,15 +81,15 @@ head(dat4)
 ########## create new names for factor2 column
 factorList <- unique(dat4$factor2)
 factorList
-factorList2 <- c("", "Recruitment or connectivity", 
-                 "Other", "Remaining biogenic habitat", 
-                 "Physical setting", "Functional diversity", 
-                 "Genetic diversity")
+factorList2 <- c("Remaining biogenic habitat", "Genetic diversity", 
+                 "Other", "", 
+                 "Recruitment or connectivity", 
+                 "Physical setting", "Functional diversity")
                  
 factorList2
 factor2New <- mapvalues(dat4$factor2, from = factorList, to = factorList2)
 dat5 <- cbind(factor2New, dat4)
-
+cbind(as.character(factor2New), as.character(dat4$factor2))
 
 ########## Get factor 1 and factor 2 in the same column
 head(dat5)
@@ -120,18 +105,16 @@ datF2 <- datF2 %>% filter(factorAll != "")
 datL <- droplevels(rbind(datF1, datF2))
 datL
 
-# now filter to relevant climate criteria
-# remove 'non climatic' and blank ''
-unique(datL$disturbance)
+# remove blank ''
+levels(datL$disturbance)
 
-datSub <- datL %>% filter(disturbance != "non climatic" &
-                            disturbance != "")
+datLsub <- datL %>% filter(disturbance != "")
 
-datSub <- droplevels(datSub)
+datLsub <- droplevels(datLsub)
 
 
 ### GENERALIZED SCRIPT TO GET PERCENTAGES
-tbl1 <- datSub
+tbl1 <- datLsub
 tbl2 <- ddply(tbl1, .(ecosystem, factorAll), summarise, 
               freq = length(ecosystem), .drop = FALSE) # frequency, I want %
 tbl2
@@ -150,7 +133,7 @@ qplot(factorAll, per, data = tbl3, geom = "boxplot") + coord_flip()
 detach("package:dplyr", unload = TRUE)
 
 # get the frequency values for plotting along the y-axis
-totalN <- as.data.frame(with(datL, table(factorAll)))
+totalN <- as.data.frame(with(datLsub, table(factorAll)))
 totalN
 totalN <- totalN[with(totalN, order(Freq, factorAll)), ]
 
@@ -162,7 +145,6 @@ frequency
 # how many yes responses for each habitat?
 with(tbl1, table(ecosystem))
 sum(with(tbl1, table(ecosystem)))
-# 57 total responses relevant climate criteria
 
 # Get summary data
 examples <- summarySE(tbl3, measurevar = "per", groupvars = "factorAll")
@@ -174,18 +156,18 @@ extraRow <- data.frame(factorAll = "Management", N = 6, per = 0, sd = 0,
                        se = 0, ci = 0)
 examples <- rbind(examples, extraRow)
 
-# custom order of factors
+# Reorder based on max to min, except for other
 unique(examples$factorAll)
 newFactorOrder <- rev(c("Recruitment or connectivity", "Remaining biogenic habitat", 
-                        "Functional diversity", "Physical setting", "Remoteness",
-                        "Genetic diversity", "Species interactions", "Management",
+                        "Genetic diversity", "Functional diversity", 
+                        "Remoteness", "Physical setting", 
+                        "Species interactions", "Management",
                         "Other"))
 
 examples$factor2 <- factor(examples$factorAll, levels = newFactorOrder)
 examples
 
-# Reorder based on max to min, except for other
-
+### Plot
 ULClabel <- theme(plot.title = element_text(hjust = -0.1, vjust = 0, size = rel(1.5)))
 
 panelA <- ggplot(examples, aes(x = factor2, y = per)) + 
@@ -199,13 +181,9 @@ panelA <- ggplot(examples, aes(x = factor2, y = per)) +
 	geom_text(label = "Expert examples", x = 1, y = 0.62, size = 4) 
 
 panelA
-# ggsave("./figs/Fig4_panelA.pdf", width = 5, height = 5)
+ggsave("./figs/Fig4_panelA.pdf", width = 5, height = 5)
 
-################################
-################################
-# EXPERT OPINIONS
-################################
-################################
+##### EXPERT OPINIONS #####
 # use calculated summary data from Jen
 dat <- read.csv("./data/resOpinions.csv", header=TRUE, na.strings="NA")
 
@@ -276,58 +254,65 @@ panelB <- ggplot(opinions, aes(x = factor2, y = proportion, fill = resilCat)) +
 	theme(axis.text.y = element_blank())
 panelB
 
-################################
-################################
-# EXPERT PAPERS
-################################
-################################
-
+##### EXPERT PAPERS #####
 # load source data
 library(dplyr)
 source("./R/process_expert_papers.R")
 
-# Filtering steps
-# 98 papers to start
-# Remove papers without evidence of resilience; 75
-# Remove rows that are blank for promoteFactor1; 55
-# Combine columns for factor1 and factor2; 78
-# Select habitat formers; 68
-# Select climate disturbances; 50 remaining
-
 summary(dat2)
+names(dat2)
+levels(dat2$ecosystem)
 
 # select relevant columns and rename
-dat3 <- dat2 %>% select(ecosystemNew, ResilienceOutcome, ResilienceResponse,
+ls2 <- litSub %>% select(ecosystem, ResilienceOutcome, ResilienceResponse,
                         MostImportantFactor1, MostImportFactor2, 
                         DisturbType1, DisturbType2,
                         FactorsPreventingResilience1, FactorsPreventingResilience2) %>%
-  rename(ecosystem = ecosystemNew, 
-         promoteFactor1 = MostImportantFactor1, 
+  rename(promoteFactor1 = MostImportantFactor1, 
          promoteFactor2 = MostImportFactor2, 
          preventFactor1 = FactorsPreventingResilience1, 
          preventFactor2 = FactorsPreventingResilience2)
 
-dat3 <- droplevels(dat3)
-summary(dat3)
+ls3 <- droplevels(ls2)
+summary(ls3)
 
-paperDF <- dat3
+paperDF <- ls3
 
 # Remove papers without evidence of resilience
 paperDF2 <- paperDF %>% filter(ResilienceOutcome != "No")
 
+#### Make sure that if factor1 is blank, then factor2 should also be blank ####
+View(paperDF2)
+
+# First need to change NAs to blanks ""
+factor1 <- as.character(paperDF2$promoteFactor1)
+factor2 <- as.character(paperDF2$promoteFactor2)
+factor1[is.na(factor1)] <- ""
+factor2[is.na(factor2)] <- ""
+
+factor1 == "" & factor2 != "" # one mistake
+suspect <- ifelse(factor1 == "" & factor2 != "", "bad", "good")
+
+factor1new <- ifelse(suspect == "good", factor1, factor2)
+factor2new <- ifelse(suspect != "good", "", factor2)
+
+paperDF3 <- cbind(paperDF2, factor1new, factor2new)
+View(paperDF3)
+
+#####
 # Remove rows that are blank for promoteFactor1
-paperDF3 <- paperDF2 %>% filter(promoteFactor1 != "")
+paperDF3 <- paperDF3 %>% filter(factor1new != "")
 names(paperDF3)
 
 f1DF <- with(paperDF3, data.frame(ecosystem = ecosystem, 
                                   ResilienceResponse = ResilienceResponse, 
                                   DisturbType1 = DisturbType1, 
-                                  promoteFactor = promoteFactor1))
+                                  promoteFactor = factor1new))
 
 f2DF <- with(paperDF3, data.frame(ecosystem = ecosystem, 
                                   ResilienceResponse = ResilienceResponse, 
                                   DisturbType1 = DisturbType1, 
-                                  promoteFactor = promoteFactor2))
+                                  promoteFactor = factor2new))
 
 promDF <- rbind(f1DF, f2DF)
 
@@ -337,31 +322,22 @@ promDF2 <- droplevels(promDF2)
 # create new factor column
 factorList <- unique(promDF2$promoteFactor)
 factorList
-factorList2 <- c("Recruitment or connectivity", "Remaining biogenic habitat", 
-                "Other", "Physical setting", 
-                "Management", "Remoteness", 
+factorList2 <- c("Recruitment or connectivity", "Management", 
+                 "Other", "Physical setting", 
+                 "Remaining biogenic habitat", "Remoteness", 
                 "Species interactions", "Functional diversity",
-                "Genetic diversity", "Other")
+                "Genetic diversity", "Management")
 factorList2
-promDF2$factorNew <- mapvalues(promDF2$promoteFactor, from = factorList, to = factorList2)
-
-# promDF2 is the full dataset; now filter to relevant criteria
-promDF3 <- promDF2 %>% filter(ResilienceResponse == "HabitatFormingSpp" | 
-                                ResilienceResponse == "WholeCommunity")
-
-unique(promDF3$DisturbType1)
-promDF4 <- promDF3 %>% filter(DisturbType1 == "Storms" |
-                                DisturbType1 == "Temperature" |
-                                DisturbType1 == "ENSO" | 
-                                DisturbType1 == ">2 stressors" |
-                                DisturbType1 == "Sea level rise/hydrodymic change")
+promDF2$factorNew <- mapvalues(promDF2$promoteFactor, from = factorList, 
+                               to = factorList2)
+levels(promDF2$ResilienceResponse)
 
 # Now get frequencies for the filtered dataset
-tbl2 <- ddply(promDF4, .(ecosystem, factorNew), summarise, 
+tbl2 <- ddply(promDF2, .(ecosystem, factorNew), summarise, 
               freq = length(ecosystem), .drop = FALSE) # frequency, I want %
 tbl2
 
-n <- with(promDF4, table(ecosystem))
+n <- with(promDF2, table(ecosystem))
 str(n)
 n <- as.data.frame(n)
 n
@@ -378,7 +354,7 @@ papers
 ULClabel <- theme(plot.title = element_text(hjust = -0.07, vjust = 0, size = rel(1.5)))
 
 # get the frequency values for plotting along the y-axis
-totalN <- as.data.frame(with(promDF4, table(factorNew)))
+totalN <- as.data.frame(with(promDF2, table(factorNew)))
 totalN
 totalN <- totalN[with(totalN, order(Freq, factorNew)), ]
 
@@ -395,40 +371,21 @@ panelC <- ggplot(papers, aes(x = factor2, y = prop)) +
 	width = 0, color = "black") + 
 	coord_flip() + geom_bar(fill = "darkgray", color = "black", stat = "identity") + 
 	labs(title = "C") + ULClabel + 
-	scale_y_continuous(limits = c(0, 0.42)) +
-	geom_text(label = "Literature examples", x = 3, y = 0.32, size = 4) +
+	scale_y_continuous(limits = c(0, 0.45)) +
+	geom_text(label = "Literature examples", x = 1, y = 0.32, size = 4) +
 	theme(axis.text.y = element_blank())
 
 panelC
 
-################################
-################################
-# EXPERT OPINIONS - PREVENTING RES
-################################
-################################
-dat <- read.csv("./data/bsSurveyResults_140527_JO_Oct17.csv", 
-                header=TRUE, na.strings="NA")
-str(dat)
-names(dat)
-dim(dat)
-
-# create new ecosystem column (with easier names)
-ecoList <- unique(dat$Ecosystem)
-ecoList
-str(ecoList)
-levels(ecoList)
-ecoList2 <- c("Algal forests", "Coral reefs", "Mangroves", "Oyster reefs", "Salt marshes", "Seagrasses")
-dat$ecosystemNew <- mapvalues(dat$Ecosystem, from = ecoList, to = ecoList2)
+##### EXPERT OPINIONS - PREVENTING RES #####
+source("./R/process_expert_survey.R")
 
 names(dat)
 # columns for preventing resilience 37 - 50
 dat2 <- dat[, c(2, 3, 5, 37:42, 44:49, 51)]
-names(dat2)
-head(dat2)
-summary(dat2)
 
 # want to count up the number of very important responses for each column by ecosystemNew
-tbl2 <- ddply(dat2, .(ecosystemNew, DRes_SpacePrem), summarise, 
+tbl2 <- ddply(dat2, .(ecosystem, DRes_SpacePrem), summarise, 
               freq = length(ecosystemNew), .drop = FALSE) # frequency, I want %
 tbl2
 tbl2[, 3]
@@ -439,16 +396,18 @@ tbl3
 dat2[, "DRes_LocalAnthro"]
 
 # create list of the factors preventing resilience
+names(dat2)
 factorList <- names(dat2[4:15])
 factorList
 
 # generalized call to get the frequency of responses for each ecosystem
-outputN <- ddply(dat2, .(ecosystemNew, dat2[, factorList[1]]), 
-	summarise, freq = length(ecosystemNew), .drop = FALSE) 
+outputN <- ddply(dat2, .(ecosystem, dat2[, factorList[1]]), 
+	summarise, freq = length(ecosystem), .drop = FALSE) 
+
 names(outputN)[2] <- "category"
 # how can i get the total number of responses, to calculate %?
-outputTotal <- ddply(dat2, .(ecosystemNew), 
-	summarise, freq = length(ecosystemNew), .drop = FALSE) 
+outputTotal <- ddply(dat2, .(ecosystem), 
+	summarise, freq = length(ecosystem), .drop = FALSE) 
 	
 outputN	
 freq <- outputN[outputN$category == "Very Important", ]$freq
@@ -466,15 +425,15 @@ N <- length(factorList)
 N
 emptyMat <- matrix(nrow = 6, ncol = N)
 emptyMat
-outputTotal <- ddply(dat2, .(ecosystemNew), 
-	summarise, freq = length(ecosystemNew), .drop = FALSE) 
+outputTotal <- ddply(dat2, .(ecosystem), 
+	summarise, freq = length(ecosystem), .drop = FALSE) 
 outputTotalFreq <- outputTotal$freq
 
 
 for (x in 1:N) {
 	factorCol <- factorList[x]
-	outputN <- ddply(dat2, .(ecosystemNew, dat2[, factorCol]), 
-		summarise, freq = length(ecosystemNew), .drop = FALSE)	
+	outputN <- ddply(dat2, .(ecosystem, dat2[, factorCol]), 
+		summarise, freq = length(ecosystem), .drop = FALSE)	
 	names(outputN)[2] <- "category"
 	freq <- outputN[outputN$category == "Very Important", ]$freq	 	
 	emptyMat[, x] <- freq/outputTotalFreq
@@ -500,7 +459,9 @@ head(longVI)
 factorList <- unique(longVI$variable)
 factorList
 
-factorList2 <- rep(c("Space preemption", "Chronic biotic stressors", "Local stressors", "Global stressors", "Lack of management", "Other"), 2)
+factorList2 <- rep(c("Space preemption", "Chronic biotic stressors", 
+                     "Local stressors", "Global stressors", "Lack of management", 
+                     "Other"), 2)
 factorList2
 
 longVI$factor <- mapvalues(longVI$variable, from = factorList, to = factorList2)
@@ -511,18 +472,28 @@ prevSummary <- summarySE(longVI, measurevar = "value",
                          groupvars = c("factor", "resilience"))
 prevSummary
 
+### Add a row for multiple
+# need to change examples column to a string (not factor)
+extraRowRecov <- data.frame(factor = "Multiple", resilience = "recovery", 
+                       N = 6, value = 0, sd = 0, se = 0, ci = 0)
+extraRowResist <- data.frame(factor = "Multiple", resilience = "resistance", 
+                            N = 6, value = 0, sd = 0, se = 0, ci = 0)
+prevSummary2 <- rbind(prevSummary, extraRowRecov, extraRowResist)
+prevSummary2
+
 #custom factor order
 prevFactorOrder <- rev(c("Local stressors", "Chronic biotic stressors", 
-                         "Space preemption", "Global stressors", "Lack of management", 
-                         "Other"))
+                         "Space preemption", "Global stressors", "Lack of management",
+                         "Multiple", "Other"))
 
-prevSummary$factor2 <- factor(prevSummary$factor, levels = prevFactorOrder)
+prevSummary2$factor2 <- factor(prevSummary2$factor, levels = prevFactorOrder)
+prevSummary2
 
-######
+###### PLOT PANEL D #####
 
 ULClabel <- theme(plot.title = element_text(hjust = -0.1, vjust = 0, size = rel(1.5)))
 
-panelD <- ggplot(prevSummary, aes(x = factor2, y = value, 
+panelD <- ggplot(prevSummary2, aes(x = factor2, y = value, 
 	fill = resilience)) +
 	theme_classic(base_size = 12) + xlab("Factors\npreventing resilience") + 
   ylab("Proportion") + coord_flip() + 
@@ -539,27 +510,20 @@ panelD <- ggplot(prevSummary, aes(x = factor2, y = value,
 	scale_x_discrete(labels = rev(c("Local anthropogenic\nstressors", 
 	                                "Local biotic\nstressors", "Space\npreemption", 
 	                                "Additional global\nstressors", "Lack of\nmanagement", 
-	                                "Other"))) +
+	                                "Multiple", "Other"))) +
 	scale_y_continuous(limits = c(0, 1))
 panelD
 
-################################
-################################
-# LITERATURE - PREVENTING RES
-################################
-################################
-summary(paperDF2)
+##### LITERATURE - PREVENTING RES #####
+# Check to see that preventFactor1 is empty if preventFactor2 is empty
+View(paperDF2) # looks ok
 
-# Remove rows that are blank for preventFactor1
-paperDF3 <- paperDF2 %>% filter(preventFactor1 != "")
-names(paperDF3)
-
-f1DF <- with(paperDF3, data.frame(ecosystem = ecosystem, 
+f1DF <- with(paperDF2, data.frame(ecosystem = ecosystem, 
                                   ResilienceResponse = ResilienceResponse, 
                                   DisturbType1 = DisturbType1, 
                                   prevFactor = preventFactor1))
 
-f2DF <- with(paperDF3, data.frame(ecosystem = ecosystem, 
+f2DF <- with(paperDF2, data.frame(ecosystem = ecosystem, 
                                   ResilienceResponse = ResilienceResponse, 
                                   DisturbType1 = DisturbType1, 
                                   prevFactor = preventFactor2))
@@ -575,30 +539,24 @@ prevDF2 <- droplevels(prevDF2)
 factorList <- unique(prevDF2$prevFactor)
 factorList
 
-factorList2 <- c("Global stressors", "Other", "Chronic biotic stressors", 
-                 "Space preemption", "Local stressors", "Lack of management", 
-                 "Other", "Lack of management", "Local stressors", "Local stressors", "Local stressors")
-  
+factorList2 <- c("Global stressors", "Local anthropogenic stressors", 
+                 "Local biotic stressors", "Lack of management", 
+                 "Multiple", "Other", 
+                 "Space preemption", "Lack of management")
+            
 factorList2
 prevDF2$factorNew <- mapvalues(prevDF2$prevFactor, from = factorList, to = factorList2)
 
 # prevDF2 is the full dataset; now filter to relevant criteria
-prevDF3 <- prevDF2 %>% filter(ResilienceResponse == "HabitatFormingSpp" | 
-                                ResilienceResponse == "WholeCommunity")
-prevDF4 <- prevDF3 %>% filter(DisturbType1 == "Storms" |
-                                DisturbType1 == "Temperature" |
-                                DisturbType1 == "ENSO" | 
-                                DisturbType1 == ">2 stressors" |
-                                DisturbType1 == "Bleaching" |
-                                DisturbType1 == "Sea level rise/hydrodymic change")
-summary(prevDF4)
+unique(prevDF2$ResilienceResponse)
+unique(prevDF2$DisturbType1)
 
 # Now get frequencies for the filtered dataset
-tbl2 <- ddply(prevDF4, .(ecosystem, factorNew), summarise, 
+tbl2 <- ddply(prevDF2, .(ecosystem, factorNew), summarise, 
               freq = length(ecosystem), .drop = FALSE) # frequency, I want %
 tbl2
 
-n <- with(prevDF4, table(ecosystem))
+n <- with(prevDF2, table(ecosystem))
 str(n)
 n <- as.data.frame(n)
 n
@@ -609,21 +567,21 @@ tbl3$prop <- with(tbl3, freq/Freq)
 tbl3
 
 detach("package:dplyr", unload = TRUE)
-prevPapers <- summarySE(tbl3, measurevar = "prop", groupvars = "factorNew", na.rm = TRUE)
+prevPapers <- summarySE(tbl3, measurevar = "prop", groupvars = "factorNew", 
+                        na.rm = TRUE)
 prevPapers
 
 ULClabel <- theme(plot.title = element_text(hjust = -0.07, vjust = 0, size = rel(1.5)))
 
 # get the frequency values for plotting along the y-axis
-totalN <- as.data.frame(with(prevDF4, table(factorNew)))
+totalN <- as.data.frame(with(prevDF2, table(factorNew)))
 totalN
 totalN <- totalN[with(totalN, order(Freq, factorNew)), ]
 
-
 #custom factor order
-prevFactorOrder <- rev(c("Local stressors", "Chronic biotic stressors", 
+prevFactorOrder <- rev(c("Local anthropogenic stressors", "Local biotic stressors", 
                          "Space preemption", "Global stressors", "Lack of management", 
-                         "Other"))
+                         "Multiple", "Other"))
 
 prevPapers$factor <- factor(prevPapers$factorNew, levels = prevFactorOrder)
 
@@ -644,6 +602,8 @@ panelE <- ggplot(prevPapers, aes(x = factor, y = prop)) +
 	scale_y_continuous(limits = c(0, 0.85))
 
 panelE
+
+##### PLOTTING 5 PANELS #####
 
 ### with blank panel F
 panelF <- ggplot(examples, aes(x = factor2, y = per)) + 
@@ -678,6 +638,6 @@ multiplot(panelA, panelB2, panelF, panelF, panelD, panelF,
 ###############################
 # save as pdf
 pdf("./figs/BS_Fig4_temp.pdf", 14, 7)
-multiplot(panelA, panelB2, panelF, panelF, panelD, panelF, 
+multiplot(panelA, panelB2, panelC, panelF, panelD, panelE, 
           layout = matrix(c(1, 2, 3, 4, 5, 6), nrow = 2, byrow = TRUE))
 dev.off()
