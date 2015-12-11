@@ -36,7 +36,7 @@ Filtering steps
  3. Some respondents gave more than one factor promoting resilience; 
  each of these were counted separately.
  4. Collating both factors into one column resulted in a dataframe with 
- 72 rows (some respondents gave no factors promoting resilience)
+ 73 rows (some respondents gave no factors promoting resilience)
  
 #### Fig 4B
 Expert opinions. 
@@ -53,50 +53,9 @@ Follow decision rules for Fig 3B, start with litSub (55)
  4. Collating both factors into one column (67)
 
 #### Fig 4D
-
+Expert opinions. 
+Used all data.
 
 #### Fig 4E
-Literature examples - resume after step 2 (45)
+Literature examples - resume after step 2 from Fig 4C (46)
  1. Collated both factors preventing resilience into one column (49)
-
-
-
-# Filtering steps
-# 98 papers to start
-# Remove papers without evidence of resilience; 75
-# Remove rows that are blank for promoteFactor1; 55
-# Combine columns for factor1 and factor2; 78
-# Select habitat formers; 68
-# Select climate disturbances; 50 remaining
-
-4D - expert opinions
-Started with 97 rows.  calculated percentages for very important responses - from raw data.  
-
-4E - expert papers
-# Filtering steps
-# 98 papers to start
-# Remove papers without evidence of resilience; 75
-# Remove rows that are blank for preventFactor1; 46
-# Combine columns for factor1 and factor2; 53
-# Select habitat formers; 48
-# Select climate disturbances; 34 remaining
-
-
-## FIGURE S4 - decision rules
-
-
-S4A - expert examples
-# Filtering steps
-# 97 respondents to start; removed 30 that did not observe resilience
-# 67; remove 7 that did not have a disturbance length response
-# 60; remove 8 that were not climate-related
-# 52 remaining
-
-S4B - expert suggested papers
-# Filtering steps
-# 98 papers to start
-# Remove papers without evidence of resilience; 75
-# Remove rows that are blank for DisturbLength1; 60
-# combine disturbLength 1 and 2; 75 
-# Select habitat formers; 60
-# Select climate disturbances; 45 remaining

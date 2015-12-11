@@ -34,6 +34,8 @@ source("./R/multiplotF.R")
 
 ##### EXPERT EXAMPLES #####
 # Get subset of relevant rows
+names(dat)
+
 datSub <- dat %>% filter(Disturbance_StrongReslience != "exclude - no disturbance found" &
                            Disturbance_StrongReslience != "non climatic")
 
@@ -46,6 +48,9 @@ dat2 <- datSub %>%
 
 dat2 <- droplevels(dat2)
 
+with(dat2, table(factor1))
+with(dat2, table(factor2))
+
 #### Make sure that if factor1 is blank, then factor2 should also be blank
 View(dat2)
 # If not, then paste factor 2 into space for factor1
@@ -57,7 +62,7 @@ dat2$suspect <- ifelse(dat2$factor1 == "" & dat2$factor2 != "", "bad", "good")
 #                                     as.character(factor1), as.character(factor2)))
 ####
 
-### remove studies without a blank factor1
+### remove studies with a blank factor1
 dat3 <- dat2 %>% filter(factor1 != "")
 dat3 <- droplevels(dat3)
 levels(dat3$factor1)
@@ -66,13 +71,16 @@ levels(dat3$factor1)
 factorList <- unique(dat3$factor1)
 factorList
 factorList2 <- c("Recruitment or connectivity", "Remaining biogenic habitat", 
-                 "Functional diversity", "Physical setting", "Other",
-                 "Remoteness", "Genetic diversity", 
-                 "Species interactions")
+                 "Functional diversity", "Genetic diversity", 
+                 "Species interactions", "Other", 
+                 "Physical setting", "Remoteness")
 factorList2
 factor1New <- mapvalues(dat3$factor1, from = factorList, to = factorList2)
 dat3 <- cbind(factor1New, dat3)
 names(dat3)
+
+with(dat3, table(factor1New))
+with(dat3, table(factor1))
 
 # Subset desired columns
 dat4 <- dat3 %>% select(factor1New, ecosystem, factor2, Disturbance_StrongReslience)
@@ -98,23 +106,19 @@ datF1 <- data.frame(ecosystem = dat5$ecosystem, factorAll = dat5$factor1New,
 datF2 <- data.frame(ecosystem = dat5$ecosystem, factorAll = dat5$factor2New, 
                     disturbance = dat5$Disturbance_StrongReslience)
 
-# Remove blanks in datF2$disturbance
+# Remove blanks in datF2$factorAll
 datF2 <- datF2 %>% filter(factorAll != "")
 
 # Now combine the two dataframes
 datL <- droplevels(rbind(datF1, datF2))
 datL
+names(datL)
+unique(datL$disturbance)
 
-# remove blank ''
-levels(datL$disturbance)
-
-datLsub <- datL %>% filter(disturbance != "")
-
-datLsub <- droplevels(datLsub)
-
+with(datL, table(factorAll))
 
 ### GENERALIZED SCRIPT TO GET PERCENTAGES
-tbl1 <- datLsub
+tbl1 <- datL
 tbl2 <- ddply(tbl1, .(ecosystem, factorAll), summarise, 
               freq = length(ecosystem), .drop = FALSE) # frequency, I want %
 tbl2
@@ -133,7 +137,7 @@ qplot(factorAll, per, data = tbl3, geom = "boxplot") + coord_flip()
 detach("package:dplyr", unload = TRUE)
 
 # get the frequency values for plotting along the y-axis
-totalN <- as.data.frame(with(datLsub, table(factorAll)))
+totalN <- as.data.frame(with(datL, table(factorAll)))
 totalN
 totalN <- totalN[with(totalN, order(Freq, factorAll)), ]
 
@@ -159,8 +163,8 @@ examples <- rbind(examples, extraRow)
 # Reorder based on max to min, except for other
 unique(examples$factorAll)
 newFactorOrder <- rev(c("Recruitment or connectivity", "Remaining biogenic habitat", 
-                        "Genetic diversity", "Functional diversity", 
-                        "Remoteness", "Physical setting", 
+                        "Physical setting","Functional diversity", 
+                        "Genetic diversity", "Remoteness", 
                         "Species interactions", "Management",
                         "Other"))
 
@@ -177,8 +181,8 @@ panelA <- ggplot(examples, aes(x = factor2, y = per)) +
 	width = 0, color = "black") + 
 	coord_flip() + geom_bar(fill = "darkgray", color = "black", stat = "identity") + 
 	labs(title = "A") + ULClabel + 
-	scale_y_continuous(limits = c(0, 0.8)) +
-	geom_text(label = "Expert examples", x = 1, y = 0.62, size = 4) 
+	scale_y_continuous(limits = c(0, 0.6)) +
+	geom_text(label = "Expert examples", x = 1, y = 0.42, size = 4) 
 
 panelA
 ggsave("./figs/Fig4_panelA.pdf", width = 5, height = 5)
@@ -231,28 +235,28 @@ opinions <- rbind(resProp, recProp)
 opinions$resilCat <- resilCat
 opinions
 
-ULClabel <- theme(plot.title = element_text(hjust = -0.1, vjust = 0, size = rel(1.5)))
-
 # Reorder based on expert examples, above
 # custom order of factors
 opinions$factor2 <- factor(opinions$factor1, levels = newFactorOrder)
 opinions
-	
+
+ULClabel <- theme(plot.title = element_text(hjust = -0.1, vjust = 0, size = rel(1.5)))
+
 panelB <- ggplot(opinions, aes(x = factor2, y = proportion, fill = resilCat)) +
-	theme_classic(base_size = 12) + xlab("") + ylab("Proportion") + 
-	coord_flip() + 
-	geom_errorbar(aes(ymin = proportion, ymax = proportion + ci), 
-	width = 0, color = "black", position = position_dodge(0.8)) + 
-	labs(title = "B") + ULClabel +
-	geom_text(label = "Expert opinions", x = 1, y = 0.8, size = 4) +
-	theme(legend.justification = c(1,0), legend.position = c(1, 0.1)) +
-	theme(legend.title = element_blank()) +
-	geom_bar(stat = "identity", position = position_dodge(0.8), 
-	color = "black", width = 0.8) +
-	scale_fill_manual(values = c("darkgray", "white")) +
-	guides(fill = guide_legend(reverse = TRUE)) + # reverses the legend
-	theme(axis.text.y = element_blank())
-panelB
+  theme_classic(base_size = 12) + xlab("") + ylab("Proportion") + 
+  coord_flip() + 
+  geom_errorbar(aes(ymin = proportion, ymax = proportion + ci), 
+                width = 0, color = "black", position = position_dodge(0.8)) + 
+  labs(title = "B") + ULClabel +
+  geom_text(label = "Expert opinions", x = 1, y = 0.8, size = 4) +
+  theme(legend.justification = c(1,0), legend.position = c(1, 0.1)) +
+  theme(legend.title = element_blank()) +
+  geom_bar(stat = "identity", position = position_dodge(0.8), 
+           color = "black", width = 0.8) +
+  scale_fill_manual(values = c("darkgray", "white")) +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  theme(axis.text.y = element_blank()) 
+
 
 ##### EXPERT PAPERS #####
 # load source data
@@ -612,32 +616,8 @@ panelF <- ggplot(examples, aes(x = factor2, y = per)) +
 	theme(axis.ticks = element_blank(), axis.text = element_blank()) + 
 	theme(panel.grid = element_blank()) 
 
-### different layout
-ULClabel <- theme(plot.title = element_text(hjust = -0.1, vjust = 0, size = rel(1.5)))
-panelB2 <- ggplot(opinions, aes(x = factor2, y = proportion, fill = resilCat)) +
-	theme_classic(base_size = 12) + xlab("") + ylab("Proportion") + 
-	coord_flip() + 
-	geom_errorbar(aes(ymin = proportion, ymax = proportion + ci), 
-	width = 0, color = "black", position = position_dodge(0.8)) + 
-	labs(title = "B") + ULClabel +
-	geom_text(label = "Expert opinions", x = 1, y = 0.8, size = 4) +
-	theme(legend.justification = c(1,0), legend.position = c(1, 0.1)) +
-	theme(legend.title = element_blank()) +
-	geom_bar(stat = "identity", position = position_dodge(0.8), 
-	color = "black", width = 0.8) +
-	scale_fill_manual(values = c("darkgray", "white")) +
-	guides(fill = guide_legend(reverse = TRUE)) +
-  theme(axis.text.y = element_blank()) 
-  
-panelB2
-
-multiplot(panelA, panelB2, panelF, panelF, panelD, panelF, 
-	layout = matrix(c(1, 2, 3, 4, 5, 6), nrow = 2, byrow = TRUE))
-
-
-###############################
-# save as pdf
+### save as pdf
 pdf("./figs/BS_Fig4_temp.pdf", 14, 7)
-multiplot(panelA, panelB2, panelC, panelF, panelD, panelE, 
+multiplot(panelA, panelB, panelC, panelF, panelD, panelE, 
           layout = matrix(c(1, 2, 3, 4, 5, 6), nrow = 2, byrow = TRUE))
 dev.off()
