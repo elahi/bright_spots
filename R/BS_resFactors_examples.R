@@ -9,15 +9,7 @@
 # Date: 151211
 #################################################
 
-##### LOAD PACKAGES, SOURCE DATA AND FUNCTIONS #####
-# load packages
-library(plyr)
-library(dplyr)
-library(reshape2)
-library(ggplot2)
-
 source("./R/process_expert_survey.R")
-source("./R/summarizeData.R")
 
 ##### GET RELEVANT ROWS AND COLUMNS #####
 # Get subset of relevant rows
@@ -25,6 +17,11 @@ names(dat)
 
 datSub <- dat %>% filter(Disturbance_StrongReslience != "exclude - no disturbance found" &
                            Disturbance_StrongReslience != "non climatic")
+summary(datSub$DRes_SpacePrem)
+
+# this is the same, but using Jen's dummy column
+datSub <- dat %>% filter(Dummy == 1)
+summary(datSub$DRes_SpacePrem)
 
 # Get subset of relevant columns 
 dat2 <- datSub %>%

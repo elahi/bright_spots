@@ -10,8 +10,16 @@
 
 rm(list=ls(all=TRUE)) # removes all previous material from R's memory
 
-##### ggplot settings #####
+##### LOAD PACKAGES, SOURCE DATA AND FUNCTIONS #####
+# load packages
+library(plyr)
+library(dplyr)
+library(reshape2)
 library(ggplot2)
+
+source("./R/summarizeData.R")
+
+##### ggplot settings #####
 theme_set(theme_classic(base_size = 10))
 ULClabel <- theme(plot.title = element_text(hjust = -0.15, vjust = 0, size = rel(1.25)))
 
@@ -20,7 +28,7 @@ ULClabel <- theme(plot.title = element_text(hjust = -0.15, vjust = 0, size = rel
 source("./R/BS_resFactors_examples.R")
 
 panelA <- ggplot(examples, aes(x = factor2, y = per)) + 
-  xlab("Factors\npromoting resilience") + ylab("Proportion") + 
+  xlab("Factors\npromoting resilience\n") + ylab("Proportion") + 
   geom_errorbar(aes(ymin = per, ymax = per + ci), 
                 width = 0, color = "black") + 
   geom_bar(fill = "darkgray", position = position_dodge(0.8), 
@@ -41,7 +49,7 @@ panelA
 source("./R/BS_resFactors_opinions.R")
 
 panelB <- ggplot(opinions, aes(x = factor2, y = proportion, fill = resilCat)) +
-  xlab("Factors\npromoting resilience") + ylab("Proportion") + coord_flip() + 
+  xlab("Factors\npromoting resilience\n") + ylab("Proportion") + coord_flip() + 
   # theme(axis.text.y = element_blank()) 
   geom_errorbar(aes(ymin = proportion, ymax = proportion + ci), 
                 width = 0, color = "black", position = position_dodge(0.8)) + 
@@ -51,8 +59,8 @@ panelB <- ggplot(opinions, aes(x = factor2, y = proportion, fill = resilCat)) +
                                   "Functional\ndiversity", "Genetic\ndiversity", 
                                   "Remoteness", "Species\ninteractions", 
                                   "Management", "Other"))) +
-  geom_text(label = "Expert opinions", x = 1, y = 0.65, size = 3) +
-  theme(legend.justification = "center", legend.position = c(0.75, 0.5)) +
+  geom_text(label = "Expert opinions", x = 0.8, y = 0.65, size = 3) +
+  theme(legend.justification = "center", legend.position = c(0.85, 0.5)) +
   theme(legend.title = element_blank()) +
   geom_bar(stat = "identity", position = position_dodge(0.8), 
            color = "black", width = 0.8) +
@@ -64,12 +72,12 @@ panelB
 ##### PANEL D: FACTORS PROMOTING RESILIENCE - EXPERT OPINIONS #####
 panelD <- ggplot(prevSummary2, aes(x = factor2, y = value, 
                                    fill = resilience)) + 
-  xlab("Factors\npreventing resilience") + ylab("Proportion") + coord_flip() + 
+  xlab("Factors\npreventing resilience\n") + ylab("Proportion") + coord_flip() + 
   geom_errorbar(aes(ymin = value, ymax = value + ci), 
                 width = 0, color = "black", position = position_dodge(0.8)) + 
   labs(title = "D") + ULClabel +
   geom_text(label = "Expert opinions", x = 0.8, y = 0.65, size = 3) +
-  theme(legend.justification = "center", legend.position = c(0.75, 0.2)) +
+  theme(legend.justification = "center", legend.position = c(0.85, 0.25)) +
   theme(legend.title = element_blank()) +
   geom_bar(stat = "identity", position = position_dodge(0.8), 
            color = "black", width = 0.8) +
@@ -97,7 +105,7 @@ panelC <- ggplot(papers, aes(x = factor2, y = prop)) +
   geom_bar(stat = "identity", position = position_dodge(0.8), 
            color = "black", fill = "darkgray", width = 0.8) +	
 	scale_y_continuous(limits = c(0, 1)) +
-	geom_text(label = "Literature examples", x = 1, y = 0.65, size = 3) +
+	geom_text(label = "Recommended literature", x = 1, y = 0.75, size = 3) +
 	theme(axis.text.y = element_blank()) 
 
 panelC
@@ -108,7 +116,7 @@ panelE <- ggplot(prevPapers, aes(x = factor, y = prop)) +
   geom_errorbar(aes(ymin = prop, ymax = prop + ci), 
                 width = 0, color = "black", position = position_dodge(0.8)) + 
   labs(title = "E") + ULClabel +
-  geom_text(label = "Literature examples", x = 2, y = 0.65, size = 3) +
+  geom_text(label = "Recommended literature", x = 1, y = 0.75, size = 3) +
   geom_bar(stat = "identity", 
            fill = "darkgray", color = "black", width = 0.8) +
   theme(axis.text.y = element_blank()) + 
@@ -125,13 +133,6 @@ panelBlank <- ggplot(examples, aes(x = factor2, y = per)) +
 
 ##### MULTI-PANEL PLOT #####
 source("./R/multiplotF.R")
-
-### TWO ROWS
-### save as pdf
-# pdf("./figs/BS_Fig4.pdf", width = 7, height = 5)
-# multiplot(panelA, panelB, panelC, panelBlank, panelD, panelE, 
-#           layout = matrix(c(1, 2, 3, 4, 5, 6), nrow = 2, byrow = TRUE))
-# dev.off()
 
 ### THREE ROWS
 pdf("./figs/BS_Fig4.pdf", width = 7, height = 10)

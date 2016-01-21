@@ -17,6 +17,9 @@
 ### 151210
 # Uploaded new file from JO, with final corrections on expert papers
 
+### 160121
+# Final, final revisions to data files, received from Jen on 20 Jan 2016
+
 ###
 rm(list=ls(all=TRUE)) # removes all previous material from R's memory
 
@@ -29,7 +32,7 @@ library(ggplot2)
 
 # load source data
 source("./R/process_expert_survey.R")
-source("./R/summarizeData_150204.R")
+source("./R/summarizeData.R")
 source("./R/multiplotF.R")
 
 ##### EXPERT EXAMPLES #####
@@ -38,6 +41,9 @@ names(dat)
 
 datSub <- dat %>% filter(Disturbance_StrongReslience != "exclude - no disturbance found" &
                            Disturbance_StrongReslience != "non climatic")
+
+# this is the same, but using Jen's dummy column
+datSub <- dat %>% filter(Dummy == 1)
 
 # Get subset of relevant columns 
 dat2 <- datSub %>%

@@ -11,15 +11,8 @@
 
 ##### LOAD PACKAGES, SOURCE DATA AND FUNCTIONS #####
 
-### Load in this order
-library(plyr)
-source("./R/summarizeData.R")
-
 library(dplyr)
 source("./R/process_expert_papers.R")
-
-library(reshape2)
-library(ggplot2)
 
 summary(dat2)
 names(dat2)
@@ -42,8 +35,8 @@ summary(ls3)
 
 paperDF <- ls3
 
-# Remove papers without evidence of resilience
-paperDF2 <- paperDF %>% filter(ResilienceOutcome != "No")
+# Do not remove papers without evidence of resilience
+# paperDF2 <- paperDF %>% filter(ResilienceOutcome != "No")
 
 ################################
 ##### PROMOTING RESILIENCE #####
@@ -51,8 +44,8 @@ paperDF2 <- paperDF %>% filter(ResilienceOutcome != "No")
 
 ##### CHECK FACTORS 1 AND 2 #####
 # First need to change NAs to blanks ""
-factor1 <- as.character(paperDF2$promoteFactor1)
-factor2 <- as.character(paperDF2$promoteFactor2)
+factor1 <- as.character(paperDF$promoteFactor1)
+factor2 <- as.character(paperDF$promoteFactor2)
 factor1[is.na(factor1)] <- ""
 factor2[is.na(factor2)] <- ""
 
@@ -62,7 +55,7 @@ suspect <- ifelse(factor1 == "" & factor2 != "", "bad", "good")
 factor1new <- ifelse(suspect == "good", factor1, factor2)
 factor2new <- ifelse(suspect != "good", "", factor2)
 
-paperDF3 <- cbind(paperDF2, factor1new, factor2new)
+paperDF3 <- cbind(paperDF, factor1new, factor2new)
 
 ##### COMBINE FACTORS 1 AND 2 #####
 # Remove rows that are blank for promoteFactor1
@@ -87,14 +80,17 @@ promDF2 <- droplevels(promDF2)
 # create new factor column
 factorList <- unique(promDF2$promoteFactor)
 factorList
-factorList2 <- c("Recruitment or connectivity", "Management", 
-                 "Other", "Physical setting", 
-                 "Remaining biogenic habitat", "Remoteness", 
-                 "Species interactions", "Functional diversity",
-                 "Genetic diversity", "Management")
+factorList2 <- c("Remoteness","Recruitment or connectivity",
+                 "Functional diversity", "Management", 
+                 "Physical setting", "Species interactions", 
+                 "Remaining biogenic habitat", "Genetic diversity",  
+                 "Other", "Management")
 factorList2
 promDF2$factorNew <- mapvalues(promDF2$promoteFactor, from = factorList, 
                                to = factorList2)
+head(promDF2$promoteFactor)
+head(promDF2$factorNew)
+
 levels(promDF2$ResilienceResponse)
 
 ##### GENERALIZED SCRIPT TO GET PERCENTAGES #####
@@ -132,16 +128,16 @@ papers
 ################################
 ##### PREVENTING RESILIENCE ####
 ################################
-head(paperDF2)
+head(paperDF)
 
 ##### CHECK FACTORS 1 AND 2 #####
 # First need to change NAs to blanks ""
-factor1 <- as.character(paperDF2$preventFactor1)
-factor2 <- as.character(paperDF2$preventFactor2)
+factor1 <- as.character(paperDF$preventFactor1)
+factor2 <- as.character(paperDF$preventFactor2)
 factor1[is.na(factor1)] <- ""
 factor2[is.na(factor2)] <- ""
 
-factor1 == "" & factor2 != "" # one mistake
+factor1 == "" & factor2 != "" 
 suspect <- ifelse(factor1 == "" & factor2 != "", "bad", "good")
 suspect
 
@@ -152,14 +148,14 @@ suspect
 ##### COMBINE FACTORS 1 AND 2 #####
 # Remove rows that are blank for preventFactor1
 library(dplyr)
-paperDF2 %>% filter(preventFactor1 == "") # looks good
+paperDF %>% filter(preventFactor1 == "") # looks good
 
-f1DF <- with(paperDF2, data.frame(ecosystem = ecosystem, 
+f1DF <- with(paperDF, data.frame(ecosystem = ecosystem, 
                                   ResilienceResponse = ResilienceResponse, 
                                   DisturbType1 = DisturbType1, 
                                   prevFactor = preventFactor1))
 
-f2DF <- with(paperDF2, data.frame(ecosystem = ecosystem, 
+f2DF <- with(paperDF, data.frame(ecosystem = ecosystem, 
                                   ResilienceResponse = ResilienceResponse, 
                                   DisturbType1 = DisturbType1, 
                                   prevFactor = preventFactor2))
@@ -174,13 +170,17 @@ prevDF2 <- droplevels(prevDF2)
 factorList <- unique(prevDF2$prevFactor)
 factorList
 
-factorList2 <- c("Global stressors", "Local anthropogenic stressors", 
-                 "Local biotic stressors", "Lack of management", 
-                 "Multiple", "Other", 
-                 "Space preemption", "Lack of management")
+factorList2 <- c("Local anthropogenic stressors", "Local biotic stressors", 
+                 "Global stressors", "Lack of management", 
+                 "Space preemption", "Multiple", "Other", 
+                  "Lack of management")
 
 factorList2
-prevDF2$factorNew <- mapvalues(prevDF2$prevFactor, from = factorList, to = factorList2)
+prevDF2$factorNew <- mapvalues(prevDF2$prevFactor, from = factorList, 
+                               to = factorList2)
+
+head(prevDF2$prevFactor)
+head(prevDF2$factorNew)
 
 ##### GENERALIZED SCRIPT TO GET PERCENTAGES #####
 ### Rename relevant dataframe

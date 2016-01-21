@@ -9,16 +9,6 @@
 # Date: 151211
 #################################################
 
-##### LOAD PACKAGES, SOURCE DATA AND FUNCTIONS #####
-
-### Load in this order
-library(plyr)
-source("./R/summarizeData.R")
-
-library(dplyr)
-library(reshape2)
-library(ggplot2)
-
 ################################
 ##### PROMOTING RESILIENCE #####
 ################################
@@ -59,7 +49,7 @@ names(dat4)
 
 
 ##### CALCULATE MEANS AND ERROR #####
-detach("package:dplyr", unload = TRUE)
+# detach("package:dplyr", unload = TRUE)
 
 resProp <- summarySE(dat4, measurevar = "resistProp", groupvars = "factor1")
 recProp <- summarySE(dat4, measurevar = "recovProp", groupvars = "factor1")
@@ -84,18 +74,24 @@ opinions
 ##### PREVENTING RESILIENCE #####
 ################################
 source("./R/process_expert_survey.R")
-
 names(dat)
-# columns for preventing resilience 37 - 50
-dat2 <- dat[, c(2, 3, 5, 37:42, 44:49, 51)]
+
+library(dplyr)
+# columns for preventing resilience (resistance and recovery)
+dat2 <- dat %>% select(ecosystem, Experience, Resilience,
+                       DRes_SpacePrem:DRes_Other, DReco_SpacePrem:DReco_Other)
+unique(dat2$ecosystem)
+
+# detach("package:dplyr", unload = TRUE)
 
 # want to count up the number of very important responses for each column by ecosystemNew
 tbl2 <- ddply(dat2, .(ecosystem, DRes_SpacePrem), summarise, 
-              freq = length(ecosystemNew), .drop = FALSE) # frequency, I want %
+              freq = length(ecosystem), .drop = FALSE) # frequency, I want %
 tbl2
 tbl2[, 3]
 
-tbl3 <- ddply(dat2, .(ecosystemNew), summarise, freq = length(ecosystemNew), .drop = FALSE)
+tbl3 <- ddply(dat2, .(ecosystem), summarise, 
+              freq = length(ecosystem), .drop = FALSE)
 tbl3
 
 dat2[, "DRes_LocalAnthro"]
@@ -108,8 +104,9 @@ factorList
 # generalized call to get the frequency of responses for each ecosystem
 outputN <- ddply(dat2, .(ecosystem, dat2[, factorList[1]]), 
                  summarise, freq = length(ecosystem), .drop = FALSE) 
-
+outputN
 names(outputN)[2] <- "category"
+
 # how can i get the total number of responses, to calculate %?
 outputTotal <- ddply(dat2, .(ecosystem), 
                      summarise, freq = length(ecosystem), .drop = FALSE) 
@@ -173,6 +170,8 @@ longVI$factor <- mapvalues(longVI$variable, from = factorList, to = factorList2)
 
 head(longVI)
 
+detach("package:dplyr", unload = TRUE)
+# library(plyr)
 prevSummary <- summarySE(longVI, measurevar = "value", 
                          groupvars = c("factor", "resilience"))
 prevSummary
