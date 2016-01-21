@@ -28,19 +28,21 @@
 # More changes to the data files - received from Jen on 1 Dec 2015
 # (Final revisions)
 
+# 160120
+# Final, final revisions to data files, received from Jen on 20 Jan 2016
+
 ################################################################
 ### LOAD FILES AND PACKAGES
 rm(list=ls(all=TRUE)) # removes all previous material from R's memory
 
 # load packages
-# library(reshape2)
 
 library(plyr)
 library(dplyr)
 library(ggplot2)
+library(grid)
 
 # load source functions
-# source("./R/summarizeData_150204.R")
 source("./R/multiplotF.R")
 
 ################################################################
@@ -64,7 +66,7 @@ names(dat)
 
 # get relevant columns
 dat2 <- dat %>% select(Ecosystem, ecosystem, Experience, Resilience, 
-                       Disturbance_StrongReslience)
+                       Disturbance_StrongReslience, Dummy)
 
 # make new column
 unique(dat2$Disturbance_StrongReslience)
@@ -89,6 +91,9 @@ unique(dat$Disturbance_StrongReslience)
 
 datSub <- dat %>% filter(Disturbance_StrongReslience != "exclude - no disturbance found" &
                           Disturbance_StrongReslience != "non climatic")
+
+# this is the same, but using Jen's dummy column
+datSub <- dat %>% filter(Dummy == 1)
 
 datSub <- droplevels(datSub)
 unique(datSub$Disturbance_StrongReslience)
@@ -147,12 +152,12 @@ panelA <- ggplot(data = examplesDF, aes(Ecosystem, Proportion,
   facet_grid(. ~ data) + coord_flip() + 
   theme(legend.position = "none") + 
   scale_y_continuous(limits = c(0,1)) + 
-  scale_x_discrete("", labels = c("Algal forests" = "Algal forests\n(18/12)", 
-                                  "Coral reefs" = "Coral reefs\n(19/18)", 
-                                  "Mangroves" = "Mangroves\n(15/10)", 
-                                  "Oyster reefs" = "Oyster reefs\n(13/6)", 
-                                  "Salt marshes" = "Salt marshes\n(15/12)", 
-                                  "Seagrasses" = "Seagrasses\n(17/13)")) + 
+  scale_x_discrete("", labels = c("Algal forests" = "Algal forests\n(18,12)", 
+                                  "Coral reefs" = "Coral reefs\n(19,18)", 
+                                  "Mangroves" = "Mangroves\n(15,10)", 
+                                  "Oyster reefs" = "Oyster reefs\n(13,6)", 
+                                  "Salt marshes" = "Salt marshes\n(15,12)", 
+                                  "Seagrasses" = "Seagrasses\n(17,13)")) + 
   labs(title = "A") + ULClabel + 
   theme(panel.margin = unit(2, "lines"))
 
@@ -173,7 +178,15 @@ litSub %>% group_by(ecosystem) %>% summarise(freq = n())
 # Create new table with Ecosystem, total sample size, and 
 # proportion of relevant papers
 total <- litOrig %>% group_by(ecosystem) %>% summarise(freq = n())
+total
+
 yes <- litSub %>% group_by(ecosystem) %>% summarise(freq = n())
+yes
+# need to use ddply because I am missing oyster reefs otherwise
+yes <- litSub %>% group_by(ecosystem) %>% 
+  ddply(.(ecosystem), summarise, freq = length(ecosystem), .drop = FALSE)
+yes
+
 total$Resilience <- "Relevance"
 total$propYes <- yes$freq/total$freq
 total
@@ -183,7 +196,8 @@ relDat <- total
 ###### Second step: Calculate proportion of observed resilience
 # Create new table with Ecosystem, total sample size, and 
 # proportion of relevant papers
-total <- litSub %>% group_by(ecosystem) %>% summarise(freq = n()) 
+total <- litSub %>% group_by(ecosystem) %>%
+  ddply(.(ecosystem), summarise, freq = length(ecosystem), .drop = FALSE)
 
 # use ddply because allows me to use .drop = FALSE (keeps all ecosystems)
 no <- litSub %>% group_by(ResilienceOutcome) %>% 
@@ -256,15 +270,14 @@ panelB <- ggplot(data = papersDF, aes(Ecosystem, Proportion,
   scale_fill_manual(values = c("darkgray", "white", "black")) + 
   facet_grid(. ~ data) + coord_flip() + 
   theme(legend.justification = c(1,0), legend.position = c(1, 0.1)) +
-  
-  # theme(legend.position = "none") + 
+  theme(legend.position = "none") + 
   scale_y_continuous(limits = c(0,1)) + 
-  scale_x_discrete("", labels = c("Algal forests" = "Algal forests\n(29/16)", 
-                                  "Coral reefs" = "Coral reefs\n(22/17)", 
-                                  "Mangroves" = "Mangroves\n(24/10)", 
-                                  "Oyster reefs" = "Oyster reefs\n(12/1)", 
-                                  "Salt marshes" = "Salt marshes\n(23/3)", 
-                                  "Seagrasses" = "Seagrasses\n(21/8)")) + 
+  scale_x_discrete("", labels = c("Algal forests" = "Algal forests\n(29,16)", 
+                                  "Coral reefs" = "Coral reefs\n(22,17)", 
+                                  "Mangroves" = "Mangroves\n(23,9)", 
+                                  "Oyster reefs" = "Oyster reefs\n(11,0)", 
+                                  "Salt marshes" = "Salt marshes\n(23,2)", 
+                                  "Seagrasses" = "Seagrasses\n(21,9)")) + 
   labs(title = "B") + ULClabel + 
   theme(panel.margin = unit(2, "lines"))
   

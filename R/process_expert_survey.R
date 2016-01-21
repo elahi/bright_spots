@@ -12,17 +12,13 @@
 # Updated survey results file
 # 1 Dec 2015
 # Final version of survey results file
+# 20 Jan 2016
+# Final, final version of survey results file
 
 #################################################
 # load data
-dat <- read.csv("./data/BS_SurveyResults_Final_Nov30_2015.csv", 
+dat <- read.csv("./data/BS_SurveyResults_Final.csv", 
                 header=TRUE, na.strings = "NA")
-
-#dat <- read.csv("./data/BS_SurveyResults_Final_Nov30_2015.csv", 
-#                header=TRUE, na.strings = c("", "NA"))
-
-summary(dat)
-
 names(dat)
 
 unique(dat$Ecosystem)
@@ -36,3 +32,4 @@ dat$ecosystem <- gsub("Algal forests (including kelps and fucoids)",
     "Algal forests", fixed = TRUE, dat$Ecosystem)
 
 unique(dat$ecosystem)
+

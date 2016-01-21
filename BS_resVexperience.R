@@ -8,19 +8,21 @@
 # Author: Robin Elahi
 # Date: 151001
 #################################################
-
+# CHANGE LOG
+# 160120
+# Final, final revisions to data files, received from Jen on 20 Jan 2016
 
 rm(list=ls(all=TRUE)) # removes all previous material from R's memory
 
 # load packages
 library(plyr)
 library(dplyr)
-library(reshape2)
+# library(reshape2)
 library(ggplot2)
 library(AICcmodavg)
 
 # load source functions
-source("./R/summarizeData_150204.R")
+#source("./R/summarizeData_150204.R")
 source("./R/multiplotF.R")
 ################################
 ################################
@@ -36,46 +38,38 @@ source("./R/multiplotF.R")
 source("./R/process_expert_survey.R")
 names(dat)
 
-# create new ecosystem column (with easier names)
-ecoList <- unique(dat$Ecosystem)
-ecoList
-str(ecoList)
-levels(ecoList)
-ecoList2 <- c("Algal forests", "Coral reefs", "Mangroves", "Oyster reefs", "Salt marshes", "Seagrasses")
-dat$ecosystemNew <- mapvalues(dat$Ecosystem, from = ecoList, to = ecoList2)
+# create numeric response of resilience observed or not
+dat$resNum <- with(dat, ifelse(Resilience == "Yes", 1, 0))
+with(dat, table(resNum))
 
-# Filtering steps
-# 97 respondents to start
-# now filter to relevant climate criteria
-unique(dat$Disturbance_StrongReslience)
-
-# Exclude: "exclude - no disturbance found" and "non-climatic"
-
-datSub <- dat %>% filter(Disturbance_StrongReslience != "exclude - no disturbance found" &
-                           Disturbance_StrongReslience != "non-climatic" &
-                           Disturbance_StrongReslience != "non climatic")
-
-datSub <- droplevels(datSub)
-unique(datSub$Disturbance_StrongReslience)
-
-datSub$resNum <- ifelse(datSub$Resilience == "Yes", 1, 0)
+# filter to relevant responses using Jen's dummy column
+datSub <- dat %>% filter(Dummy == 1)
+with(datSub, table(resNum))
 
 names(datSub)
-unique(datSub$Ecosystem)
+unique(datSub$ecosystem)
 
 #################################################
 # USE GLM
 #################################################
 head(datSub)
-with(datSub, table(resNum, ecosystemNew))
+names(datSub)
+with(datSub, table(resNum, ecosystem))
 
 # Set up candidate model list
 Cand.mod <- list()
 
-Cand.mod[[1]] <- glm(resNum ~ Experience*ecosystemNew, data = datSub, family = binomial())
-Cand.mod[[2]] <- glm(resNum ~ Experience + ecosystemNew, data = datSub, family = binomial())
+Cand.mod[[1]] <- glm(resNum ~ Experience * ecosystem, data = datSub, family = binomial())
+summary(Cand.mod[[1]])
+anova(Cand.mod[[1]], test = "Chisq")
+
+Cand.mod[[2]] <- glm(resNum ~ Experience + ecosystem, data = datSub, family = binomial())
 Cand.mod[[3]] <- glm(resNum ~ Experience , data = datSub, family = binomial())
-Cand.mod[[4]] <- glm(resNum ~ ecosystemNew , data = datSub, family = binomial())
+summary(Cand.mod[[3]])
+# Is the residual deviance significant?
+1 - pchisq(70.379, 69) # NO
+
+Cand.mod[[4]] <- glm(resNum ~ ecosystem , data = datSub, family = binomial())
 Cand.mod[[5]] <- glm(resNum ~ 1 , data = datSub, family = binomial())
 
 #create a vector of names to trace back models in set
@@ -84,27 +78,18 @@ mod_text <- c("Experience * Ecosystem", "Experience + Ecosystem", "Experience",
               "Ecosystem", "Null model")
 
 #generate AICc table with numbers
-mod.aicctab <- aictab(cand.set= Cand.mod, modnames=mod_numbers, sort=TRUE, 
-                      second.ord=FALSE) # second.ord =TRUE means AICc is used (not AIC)
+mod.aicctab <- aictab(cand.set= Cand.mod, modnames=mod_numbers, sort = TRUE, 
+                      second.ord = TRUE) # second.ord =TRUE means AICc is used (not AIC)
 print(mod.aicctab, digits=2, LL=TRUE)
 
 #generate AICc table with names
-mod.aicctab <- aictab(cand.set= Cand.mod, modnames= mod_text, sort=TRUE, 
-                      second.ord=FALSE) # second.ord =TRUE means AICc is used (not AIC)
+mod.aicctab <- aictab(cand.set= Cand.mod, modnames= mod_text, sort = TRUE, 
+                      second.ord = FALSE) # second.ord =TRUE means AICc is used (not AIC)
 print(mod.aicctab, digits=2, LL=TRUE)
 write.csv(mod.aicctab, 'output/glm_results.csv')
 
-summary(glm1)
-anova(glm1, test = "Chisq")
-anova(glm1, test = "LRT")
-
-AIC(glm1, glm2, glm3, glm4)
-anova(glm3, glm4)
-plot(glm3)
-summary(glm4)
-
 # plot results
-plot1 <- ggplot(datSub, aes(Experience, resNum, shape = ecosystemNew)) +
+plot1 <- ggplot(datSub, aes(Experience, resNum, shape = ecosystem)) +
 	theme_classic(base_size = 12) + xlab("Experience (years)") + 
 	ylab("Have you observed resilience?\n (proportion)") + 
 	# theme(legend.justification = c(1,0), legend.position = c(1, 0.01)) +
@@ -119,5 +104,6 @@ plot1 + stat_smooth(mapping = aes(shape = NULL), method = "glm", family = "binom
 ggsave("./figs/BS_resVexperience.pdf", height = 3.5, width = 5)
 
 # Can't test the interaction well because few "no's"
-plot1 + facet_wrap(~ ecosystemNew)
+plot1 + facet_wrap(~ ecosystem)
 
+anova(Cand.mod[[5]], Cand.mod[[3]])

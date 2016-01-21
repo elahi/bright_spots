@@ -12,9 +12,11 @@
 # PapersList2_NL_150526_JO_Oct1.csv
 # 151201 - JO updated papers list file
 # BS_RecommendedLiterature_Final_Nov30_2015.csv
+# 160120 - JO updated papers list file
+# BS_RecommendedLiterature_Final.csv
 #################################################
 
-dat <- read.csv("./data/BS_RecommendedLiterature_Final_Nov30_2015.csv", 
+dat <- read.csv("./data/BS_RecommendedLiterature_Final.csv", 
                 header=TRUE, na.strings = "NA")
 head(dat)
 unique(dat$Paper)
@@ -26,8 +28,8 @@ names(dat)
 # create new ecosystem column (with easier names)
 ecoList <- unique(dat$EcosystemType)
 ecoList
-ecoList2 <- c("Seagrasses", "Algal forests", "Coral reefs", 
-              "Oyster reefs", "Mangroves", "Salt marshes")
+ecoList2 <- c("Coral reefs", "Algal forests", "Mangroves", 
+              "Oyster reefs", "Salt marshes", "Seagrasses")
 
 dat$ecosystemNew <- mapvalues(dat$EcosystemType, from = ecoList, 
                               to = ecoList2)
@@ -40,7 +42,8 @@ dat2 <- dat %>% select(Paper, PaperType, ecosystemNew, EcosystemType,
                        ResilienceOutcome, ResilienceCat, ResilienceResponse,
                         DisturbType1, DisturbType2, DISTURBANCE.COMPILED, 
                        MostImportantFactor1, MostImportFactor2, 
-                       FactorsPreventingResilience1, FactorsPreventingResilience2) %>%
+                       FactorsPreventingResilience1, FactorsPreventingResilience2, 
+                       Dummy) %>%
   rename(ecosystem = ecosystemNew)
 dat2 <- droplevels(dat2)
 
@@ -86,6 +89,10 @@ dat5 <- droplevels(dat5)
 
 ### Remove non climatic disturbances
 unique(dat5$DISTURBANCE.COMPILED)
-litSub <- dat5 %>% filter(DISTURBANCE.COMPILED != "non climatic")
+litSub_RE <- dat5 %>% filter(DISTURBANCE.COMPILED != "non climatic")
+
+
+# alternative, using Jen's dummy column
+litSub <- dat2 %>% filter(Dummy == "1")
 
 #################################################
