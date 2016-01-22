@@ -137,11 +137,10 @@ examples <- rbind(examples, extraRow)
 ##### PREPARE FOR PLOTTING #####
 # Reorder based on max to min, except for other
 unique(examples$factorAll)
-newFactorOrder <- rev(c("Recruitment or connectivity", "Remaining biogenic habitat", 
-                        "Physical setting","Functional diversity", 
-                        "Genetic diversity", "Remoteness", 
-                        "Species interactions", "Management",
-                        "Other"))
+newFactorOrder <- rev(c("Remaining biogenic habitat", "Recruitment or connectivity", 
+                        "Physical setting", "Genetic diversity", 
+                        "Functional diversity", "Species interactions",
+                         "Remoteness", "Management", "Other"))
 
 examples$factor2 <- factor(examples$factorAll, levels = newFactorOrder)
 examples

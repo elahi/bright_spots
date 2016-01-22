@@ -21,7 +21,7 @@ source("./R/summarizeData.R")
 
 ##### ggplot settings #####
 theme_set(theme_classic(base_size = 10))
-ULClabel <- theme(plot.title = element_text(hjust = -0.15, vjust = 0, size = rel(1.25)))
+ULClabel <- theme(plot.title = element_text(hjust = -0.15, vjust = 0.5, size = rel(1.25)))
 
 ##### PANEL A: FACTORS PROMOTING RESILIENCE - EXPERT EXAMPLES #####
 # load source data
@@ -34,10 +34,13 @@ panelA <- ggplot(examples, aes(x = factor2, y = per)) +
   geom_bar(fill = "darkgray", position = position_dodge(0.8), 
   color = "black", stat = "identity", width = 0.8) + 
   labs(title = "A") + ULClabel + coord_flip() + 
-  scale_x_discrete(labels = rev(c("Recruitment or\nconnectivity", 
-                                  "Remaining\nbiogenic habitat", "Physical\nsetting", 
-                                  "Functional\ndiversity", "Genetic\ndiversity", 
-                                  "Remoteness", "Species\ninteractions", 
+  scale_x_discrete(labels = rev(c("Remaining\nbiogenic habitat", 
+                                  "Recruitment or\nconnectivity", 
+                                  "Physical\nsetting", 
+                                  "Genetic\ndiversity", 
+                                  "Functional\ndiversity", 
+                                  "Species\ninteractions", 
+                                  "Remoteness", 
                                   "Management", "Other"))) +
   scale_y_continuous(limits = c(0, 1)) +
   geom_text(label = "Expert examples", x = 1, y = 0.65, size = 3) 
@@ -54,10 +57,13 @@ panelB <- ggplot(opinions, aes(x = factor2, y = proportion, fill = resilCat)) +
   geom_errorbar(aes(ymin = proportion, ymax = proportion + ci), 
                 width = 0, color = "black", position = position_dodge(0.8)) + 
   labs(title = "B") + ULClabel +  
-  scale_x_discrete(labels = rev(c("Recruitment or\nconnectivity", 
-                                  "Remaining\nbiogenic habitat", "Physical\nsetting", 
-                                  "Functional\ndiversity", "Genetic\ndiversity", 
-                                  "Remoteness", "Species\ninteractions", 
+  scale_x_discrete(labels = rev(c("Remaining\nbiogenic habitat", 
+                                  "Recruitment or\nconnectivity", 
+                                  "Physical\nsetting", 
+                                  "Genetic\ndiversity", 
+                                  "Functional\ndiversity", 
+                                  "Species\ninteractions", 
+                                  "Remoteness", 
                                   "Management", "Other"))) +
   geom_text(label = "Expert opinions", x = 0.8, y = 0.65, size = 3) +
   theme(legend.justification = "center", legend.position = c(0.85, 0.5)) +
@@ -69,7 +75,7 @@ panelB <- ggplot(opinions, aes(x = factor2, y = proportion, fill = resilCat)) +
 
 panelB
 
-##### PANEL D: FACTORS PROMOTING RESILIENCE - EXPERT OPINIONS #####
+##### PANEL D: FACTORS PREVENTING RESILIENCE - EXPERT OPINIONS #####
 panelD <- ggplot(prevSummary2, aes(x = factor2, y = value, 
                                    fill = resilience)) + 
   xlab("Factors\npreventing resilience\n") + ylab("Proportion") + coord_flip() + 
@@ -94,7 +100,7 @@ panelD
 # load source data
 source("./R/BS_resFactors_literature.R")
 
-ULClabel <- theme(plot.title = element_text(hjust = -0.1, vjust = 0, size = rel(1.25)))
+ULClabel <- theme(plot.title = element_text(hjust = -0.1, vjust = 0.5, size = rel(1.25)))
 
 # Reorder based on max to min
 panelC <- ggplot(papers, aes(x = factor2, y = prop)) + 
@@ -110,7 +116,7 @@ panelC <- ggplot(papers, aes(x = factor2, y = prop)) +
 
 panelC
 
-##### PANEL E: FACTORS PROMOTING RESILIENCE - EXPERT LITERATURE #####
+##### PANEL E: FACTORS PREVENTING RESILIENCE - EXPERT LITERATURE #####
 panelE <- ggplot(prevPapers, aes(x = factor, y = prop)) + 
   xlab("") + ylab("Proportion") + coord_flip() + 
   geom_errorbar(aes(ymin = prop, ymax = prop + ci), 
