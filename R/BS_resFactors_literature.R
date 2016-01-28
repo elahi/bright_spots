@@ -80,6 +80,7 @@ promDF2 <- droplevels(promDF2)
 # create new factor column
 factorList <- unique(promDF2$promoteFactor)
 factorList
+
 factorList2 <- c("Remoteness","Recruitment or connectivity",
                  "Functional diversity", "Management", 
                  "Physical setting", "Species interactions", 
@@ -210,6 +211,8 @@ prevPapers
 
 ##### PREPARE FOR PLOTTING #####
 #custom factor order
+levels(prevPapers$factorNew)
+
 prevFactorOrder <- rev(c("Local anthropogenic stressors", "Local biotic stressors", 
                          "Space preemption", "Global stressors", "Lack of management", 
                          "Multiple", "Other"))

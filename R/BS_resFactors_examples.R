@@ -54,10 +54,10 @@ levels(dat3$factor1)
 ### create new names for factor1 column
 factorList <- unique(dat3$factor1)
 factorList
-factorList2 <- c("Recruitment or connectivity", "Remaining biogenic habitat", 
-                 "Functional diversity", "Genetic diversity", 
-                 "Species interactions", "Other", 
-                 "Physical setting", "Remoteness")
+factorList2 <- c("Remaining biogenic habitat", "Recruitment or connectivity",
+                 "Functional diversity", "Physical setting",
+                 "Remoteness", "Genetic diversity", 
+                  "Other", "Species interactions")
 factorList2
 factor1New <- mapvalues(dat3$factor1, from = factorList, to = factorList2)
 dat3 <- cbind(factor1New, dat3)
@@ -73,8 +73,9 @@ head(dat4)
 ### create new names for factor2 column
 factorList <- unique(dat4$factor2)
 factorList
-factorList2 <- c("Remaining biogenic habitat", "Genetic diversity", 
-                 "Other", "", 
+
+factorList2 <- c("", "Remaining biogenic habitat", 
+                 "Other", "Genetic diversity", 
                  "Recruitment or connectivity", 
                  "Physical setting", "Functional diversity")
 
@@ -82,6 +83,8 @@ factorList2
 factor2New <- mapvalues(dat4$factor2, from = factorList, to = factorList2)
 dat5 <- cbind(factor2New, dat4)
 cbind(as.character(factor2New), as.character(dat4$factor2))
+
+with(dat5, table(factor2New))
 
 ### Get factor 1 and factor 2 in the same column
 head(dat5)
@@ -92,6 +95,8 @@ datF2 <- data.frame(ecosystem = dat5$ecosystem, factorAll = dat5$factor2New,
 
 # Remove blanks in datF2$factorAll
 datF2 <- datF2 %>% filter(factorAll != "")
+head(datF2)
+datF2
 
 # Now combine the two dataframes
 datL <- droplevels(rbind(datF1, datF2))
@@ -144,3 +149,4 @@ newFactorOrder <- rev(c("Remaining biogenic habitat", "Recruitment or connectivi
 
 examples$factor2 <- factor(examples$factorAll, levels = newFactorOrder)
 examples
+

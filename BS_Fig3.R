@@ -31,6 +31,9 @@
 # 160120
 # Final, final revisions to data files, received from Jen on 20 Jan 2016
 
+# 160128
+# Changed formatting according to GDL
+
 ################################################################
 ### LOAD FILES AND PACKAGES
 rm(list=ls(all=TRUE)) # removes all previous material from R's memory
@@ -99,6 +102,10 @@ datSub <- droplevels(datSub)
 unique(datSub$Disturbance_StrongReslience)
 unique(datSub$Resilience)
 
+# overall percentage of observed resilience, ignoring ecosystem types
+datSub %>% group_by(Resilience) %>% summarise(freq = n())
+57/(14+57)
+
 # Create new table with Ecosystem, total sample size, and proportion of relevant responses
 total <- datSub %>% group_by(ecosystem) %>% summarise(freq = n()) 
 yes <- datSub %>% group_by(ecosystem, Resilience) %>% summarise(freq = n()) %>% 
@@ -113,7 +120,7 @@ resilienceDat <- total
 # Combine the two dataframes
 relevanceDat
 resilienceDat
-relevanceDat$data <- "Relevant expert examples"
+relevanceDat$data <- "Observed climatic disturbance"
 resilienceDat$data <- "Observed resilience"
 examplesDF <- rbind(relevanceDat, resilienceDat)
 examplesDF
@@ -125,7 +132,7 @@ examplesDF$data <- as.factor(examplesDF$data)
 
 # Reorder data levels
 examplesDF$data <- factor(examplesDF$data, 
-                        levels = c("Relevant expert examples", "Observed resilience"))
+                        levels = c("Observed climatic disturbance", "Observed resilience"))
 levels(examplesDF$data)
 
 # Reverse alphabetical
@@ -137,16 +144,20 @@ unique(examplesDF$Ecosystem)
 
 
 ###### Panel A ######
-ULClabel <- theme(plot.title = element_text(hjust = -0.08, 
+ULClabel <- theme(plot.title = element_text(hjust = -0.05, 
                                             vjust = 0, size = rel(1.5)))
 relevance_N <- relevanceDat$N
 resilience_N <- resilienceDat$N
 
 examplesDF
 
+# what is the overall percentage of observed resilience, across ecosystem types?
+examplesDF %>% filter(data == "Observed resilience") %>% 
+  summarise(mean = mean(Proportion), sd = sd(Proportion))
+
 panelA <- ggplot(data = examplesDF, aes(Ecosystem, Proportion, 
                             fill = data)) + 
-  theme_classic(base_size = 12) + xlab("") + ylab("Proportion") + 
+  theme_classic(base_size = 12) + xlab("") + ylab("Proportion of expert respondents") + 
   geom_bar(stat = "identity", position = "stack", color = "black") + 
   scale_fill_manual(values = c("white", "black")) + 
   facet_grid(. ~ data) + coord_flip() + 
@@ -159,9 +170,10 @@ panelA <- ggplot(data = examplesDF, aes(Ecosystem, Proportion,
                                   "Salt marshes" = "Salt marshes\n(15,12)", 
                                   "Seagrasses" = "Seagrasses\n(17,13)")) + 
   labs(title = "A") + ULClabel + 
-  theme(panel.margin = unit(2, "lines"))
+  theme(panel.margin = unit(2, "lines")) + 
+  theme(strip.background = element_blank())
 
-# multiplot(panelA, panelB, cols = 1)
+multiplot(panelA, panelB, cols = 1)
 
 ###### EXPERT PAPERS #####
 # load source data
@@ -234,7 +246,7 @@ resDatL
 
 
 # Combine the two dataframes
-relDat$data <- "Relevant literature"
+relDat$data <- "Observed climatic disturbance"
 resDatL$data <- "Observed resilience"
 papersDF <- rbind(relDat, resDatL)
 
@@ -245,7 +257,7 @@ papersDF$data <- as.factor(papersDF$data)
 
 # Reorder data levels
 papersDF$data <- factor(papersDF$data, 
-                              levels = c("Relevant literature", "Observed resilience"))
+                              levels = c("Observed climatic disturbance", "Observed resilience"))
 levels(papersDF$data)
 
 # Reverse alphabetical
@@ -265,7 +277,7 @@ papersDF
 ###### Panel B #####
 panelB <- ggplot(data = papersDF, aes(Ecosystem, Proportion, 
                             fill = Resilience)) + 
-  theme_classic(base_size = 12) + xlab("") + ylab("Proportion") + 
+  theme_classic(base_size = 12) + xlab("") + ylab("Proportion of recommended literature") + 
   geom_bar(stat = "identity", position = "stack", color = "black") + 
   scale_fill_manual(values = c("darkgray", "white", "black")) + 
   facet_grid(. ~ data) + coord_flip() + 
@@ -279,15 +291,16 @@ panelB <- ggplot(data = papersDF, aes(Ecosystem, Proportion,
                                   "Salt marshes" = "Salt marshes\n(23,2)", 
                                   "Seagrasses" = "Seagrasses\n(21,9)")) + 
   labs(title = "B") + ULClabel + 
-  theme(panel.margin = unit(2, "lines"))
+  theme(panel.margin = unit(2, "lines")) + 
+  theme(strip.background = element_blank())
   
+panelB
+
 ###############################
 # save as pdf
 pdf("./figs/BS_Fig3.pdf", 7, 7)
 multiplot(panelA, panelB, cols = 1)
 dev.off()	
-
-
 
 
 

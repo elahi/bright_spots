@@ -71,7 +71,8 @@ panelB <- ggplot(opinions, aes(x = factor2, y = proportion, fill = resilCat)) +
   geom_bar(stat = "identity", position = position_dodge(0.8), 
            color = "black", width = 0.8) +
   scale_fill_manual(values = c("darkgray", "white")) +
-  guides(fill = guide_legend(reverse = TRUE)) 
+  guides(fill = guide_legend(reverse = TRUE)) +
+  theme(legend.key.size = unit(0.35, "cm"))
 
 panelB
 
@@ -93,7 +94,9 @@ panelD <- ggplot(prevSummary2, aes(x = factor2, y = value,
                                   "Local biotic\nstressors", "Space\npreemption", 
                                   "Additional global\nstressors", "Lack of\nmanagement", 
                                   "Multiple", "Other"))) +
-  scale_y_continuous(limits = c(0, 1))
+  scale_y_continuous(limits = c(0, 1)) +
+  theme(legend.key.size = unit(0.35, "cm"))
+
 panelD
 
 ##### PANEL C: FACTORS PROMOTING RESILIENCE - EXPERT LITERATURE #####
